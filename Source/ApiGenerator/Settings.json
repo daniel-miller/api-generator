@@ -1,0 +1,7 @@
+﻿{
+    "CommonName": "Common",
+    "DatabaseName": "M1_Local_Festival",
+    "EndpointTable": "dbo.TApiEndpoint",
+    "OutputDirectory": "d:\\temp\\t4",
+    "PlatformName": "Festival"
+}

@@ -1,0 +1,80 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".txt" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+
+    var DatabaseSchema = "jobs";
+    var DatabaseTable = "TCandidateEducation";
+    var DomainEntity = DatabaseTable;
+
+    var table = GetTable(DatabaseSchema, DatabaseTable);
+
+    var columns = new List<DataColumn>();
+    foreach (DataColumn column in table.Columns)
+        columns.Add(column);
+    columns.Sort(new EntityColumnComparer());
+
+    var pkColumnNames = "";
+    for (int i = 0; i < table.PrimaryKey.Length; i++)
+    {
+        if (i > 0)
+            pkColumnNames += ",";
+        pkColumnNames += "x." + table.PrimaryKey[i].ColumnName;
+    }
+#>
+internal class <#= DomainEntity #>Configuration : EntityTypeConfiguration<<#= DomainEntity #>>
+{
+    public <#= DomainEntity #>Configuration() : this("<#= DatabaseSchema #>") { }
+
+    public <#= DomainEntity #>Configuration(string schema)
+    {
+        ToTable("<#= DatabaseTable #>", "<#= DatabaseSchema #>");
+        HasKey(x => new { <#= pkColumnNames #> });
+            
+<# 
+
+for (int i = 0; i < columns.Count; i++) 
+{ 
+    var column = columns[i];
+    
+    Write("        Property(x => x." + column.ColumnName + ")");
+
+    if (!column.AllowDBNull)
+    {
+        Write(".IsRequired()");
+    }
+    
+    if (column.DataType == typeof(string))
+    {
+        if (GetNativeType(DatabaseTable, column.ColumnName) == "nvarchar")
+        {
+            Write(".IsUnicode(true)");
+        }
+        else
+        {
+            Write(".IsUnicode(false)");
+        }
+        
+        if (column.MaxLength > -1)
+        {
+            Write(".HasMaxLength(" + column.MaxLength + ")");
+        }
+    }
+    else if (column.DataType == typeof(decimal))
+    {
+        var precision = GetColumnPrecision(DatabaseTable, column.ColumnName);
+        var scale = GetColumnScale(DatabaseTable, column.ColumnName);
+        if (precision != null && scale != null)
+        {
+            Write($".HasPrecision({precision}, {scale})");
+        }
+    }
+        
+    WriteLine(";");
+}
+#>
+    }
+}

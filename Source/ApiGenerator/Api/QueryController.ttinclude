@@ -1,0 +1,90 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".txt" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ parameter type="System.String" name="Platform" #>
+<#@ parameter type="System.String" name="DatabaseSchema" #>
+<#@ parameter type="System.String" name="DatabaseTable" #>
+<#@ parameter type="System.String" name="DomainToolkit" #>
+<#@ parameter type="System.String" name="DomainToolset" #>
+<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+    
+    var table = GetTable(DatabaseSchema, DatabaseTable);
+    
+    string DomainEntityPlural = PluralizeNoun(DomainEntity);
+    string entity = ConvertFirstLetterToLowercase(DomainEntity);
+
+    var pkParameters = "";
+    var pkExpression = "";
+    var pkProperties = "";
+    var pkValuesForCreate = "";
+    var pkValuesForUpdate = "";
+    for (int i = 0; i < table.PrimaryKey.Length; i++)
+    {
+        if (i > 0)
+        {
+            pkParameters += ", ";
+            pkExpression += " && ";
+            pkProperties += ", ";
+        }
+        var column = table.PrimaryKey[i];
+        var typeName = TypeNameOrAlias(column.DataType);
+        pkParameters += "[FromRoute] " + typeName + " " + ConvertFirstLetterToLowercase(column.ColumnName);
+        pkExpression += "x." + column.ColumnName + " == " + ConvertFirstLetterToLowercase(column.ColumnName);
+        pkProperties += ConvertFirstLetterToLowercase(column.ColumnName);
+        pkValuesForCreate += column.ColumnName + " {entity." + column.ColumnName + "}";
+        pkValuesForUpdate += column.ColumnName + " {" + ConvertFirstLetterToLowercase(column.ColumnName) + "}";
+    }
+
+    var apiGroup = DomainToolkit;
+    if (DomainToolset != "-")
+        apiGroup += ": " + DomainToolset;
+
+    var apiSpace = DomainToolkit;
+    if (DomainToolset != "-")
+        apiSpace += "." + DomainToolset;
+    if (DomainEntity != "-")
+        apiSpace += "." + DomainEntity;
+#>
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+using <#= Platform #>.Contract;
+using <#= Platform #>.Domain;
+using <#= Platform #>.Persistence;
+
+namespace <#= Platform #>.Api.<#= DomainToolkit #>;
+
+[ApiController]
+[ApiExplorerSettings(GroupName = "<#= apiGroup #>")]
+[Authorize]
+public class <#= DomainEntity #>Controller : ControllerBase
+{
+    private readonly I<#= DomainEntity #>Service _<#= entity #>Service;
+
+    public <#= DomainEntity #>Controller(I<#= DomainEntity #>Service <#= entity #>Service)
+    {
+        _<#= entity #>Service = <#= entity #>Service;
+    }
+
+    [Authorize(ApiEndpoints.<#= apiSpace #>.Fetch)]
+    [HttpGet(ApiEndpoints.<#= apiSpace #>.Fetch)]
+    [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>GetResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Fetch([FromQuery] <#= DomainEntity #>SearchRequest request, CancellationToken token)
+    {
+        var identity = HttpContext.GetIdentity();
+        var adapter = new <#= DomainEntity #>Adapter(identity);
+
+        var criteria = adapter.ToCriteria(request);
+        var results = await _<#= entity #>Service.SearchAsync(criteria, token);
+        var count = await _<#= entity #>Service.CountAsync(criteria, token);
+
+        Response.AddPagination(request.Page, request.Take, results.Count(), count);
+
+        var response = adapter.ToFetchResponse(results);
+        return Ok(response);
+    }
+}

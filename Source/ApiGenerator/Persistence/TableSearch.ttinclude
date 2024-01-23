@@ -1,0 +1,77 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".txt" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ parameter type="System.String" name="Platform" #>
+<#@ parameter type="System.String" name="DatabaseSchema" #>
+<#@ parameter type="System.String" name="DatabaseTable" #>
+<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+    
+    var table = GetTable(DatabaseSchema, DatabaseTable);
+
+    string DatabaseTablePlural = PluralizeNoun(DatabaseTable);
+    string DomainEntityPlural = PluralizeNoun(DomainEntity);
+
+    var pkParameters = "";
+    var pkExpression = "";
+    for (int i = 0; i < table.PrimaryKey.Length; i++)
+    {
+        if (i > 0)
+        {
+            pkParameters += ", ";
+            pkExpression += " && ";
+        }
+        var column = table.PrimaryKey[i];
+        var typeName = TypeNameOrAlias(column.DataType);
+        pkParameters += typeName + " " + ConvertFirstLetterToLowercase(column.ColumnName);
+        pkExpression += "x." + column.ColumnName + " == " + ConvertFirstLetterToLowercase(column.ColumnName);
+    }
+#>
+using Microsoft.EntityFrameworkCore;
+
+using <#= Platform #>.Domain;
+
+namespace <#= Platform #>.Persistence;
+
+public class <#= DomainEntity #>Search
+{
+    private readonly TableDbContext _db;
+
+    public <#= DomainEntity #>Search(TableDbContext db)
+    {
+        _db = db;
+    }
+
+    internal async Task<int> CountAsync(<#= DomainEntity #>SearchCriteria criteria, CancellationToken token)
+    {
+        return await BuildQuery(criteria)
+            .CountAsync(token);
+    }
+
+    public async Task<<#= DomainEntity #>Entity?> GetAsync(<#= pkParameters #>, CancellationToken token)
+    {
+        return await _db.<#= DomainEntityPlural #>
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => <#= pkExpression #>, token);
+    }
+
+    internal async Task<IEnumerable<<#= DomainEntity #>Entity>> SearchAsync(<#= DomainEntity #>SearchCriteria criteria, CancellationToken token)
+    {
+        return await BuildQuery(criteria)
+            .Skip((criteria.Page - 1) * criteria.Rows)
+            .Take(criteria.Rows)
+            .ToListAsync(token);
+    }
+
+    private IQueryable<<#= DomainEntity #>Entity> BuildQuery(<#= DomainEntity #>SearchCriteria criteria)
+    {
+        var query = _db.<#= DomainEntityPlural #>.AsNoTracking().AsQueryable();
+
+
+
+        return query;
+    }
+}

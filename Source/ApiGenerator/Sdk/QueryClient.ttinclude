@@ -1,0 +1,69 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".txt" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ parameter type="System.String" name="Common" #>
+<#@ parameter type="System.String" name="Platform" #>
+<#@ parameter type="System.String" name="DatabaseSchema" #>
+<#@ parameter type="System.String" name="DatabaseTable" #>
+<#@ parameter type="System.String" name="DomainToolkit" #>
+<#@ parameter type="System.String" name="DomainToolset" #>
+<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+    
+    var table = GetTable(DatabaseSchema, DatabaseTable);
+    
+    string DomainEntityPlural = PluralizeNoun(DomainEntity);
+    string entity = ConvertFirstLetterToLowercase(DomainEntity);
+
+    var pkParameters = "";
+    var pkExpression = "";
+    var pkProperties = "";
+    var pkValuesForCreate = "";
+    var pkValuesForUpdate = "";
+    for (int i = 0; i < table.PrimaryKey.Length; i++)
+    {
+        if (i > 0)
+        {
+            pkParameters += ", ";
+            pkExpression += " && ";
+            pkProperties += ", ";
+        }
+        var column = table.PrimaryKey[i];
+        var typeName = TypeNameOrAlias(column.DataType);
+        pkParameters += typeName + " " + ConvertFirstLetterToLowercase(column.ColumnName);
+        pkExpression += "x." + column.ColumnName + " == " + ConvertFirstLetterToLowercase(column.ColumnName);
+        pkProperties += ConvertFirstLetterToLowercase(column.ColumnName);
+        pkValuesForCreate += column.ColumnName + " {entity." + column.ColumnName + "}";
+        pkValuesForUpdate += column.ColumnName + " {" + ConvertFirstLetterToLowercase(column.ColumnName) + "}";
+    }
+
+    var apiGroup = DomainToolkit;
+    if (DomainToolset != "-")
+        apiGroup += ": " + DomainToolset;
+
+    var apiSpace = DomainToolkit;
+    if (DomainToolset != "-")
+        apiSpace += "." + DomainToolset;
+    if (DomainEntity != "-")
+        apiSpace += "." + DomainEntity;
+#>
+using System;
+using System.Collections.Generic;
+
+using <#= Common #>.Sdk;
+
+using <#= Platform #>.Contract;
+
+namespace <#= Platform #>.Sdk
+{
+    public class <#= DomainEntity #>Client : SdkClient
+    {
+        public <#= DomainEntity #>Client(SdkConfiguration configuration) : base(configuration) { }
+
+        public IEnumerable<<#= DomainEntity #>GetResponse> Fetch(<#= DomainEntity #>SearchRequest request)
+            => GetMany<<#= DomainEntity #>GetResponse>(ApiEndpoints.<#= apiSpace #>.Collection, ConvertToDictionary(request));
+    }   
+}

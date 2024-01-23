@@ -1,0 +1,114 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".txt" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ parameter type="System.String" name="Platform" #>
+<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+    
+    var all = new List<string>();
+
+    var endpoints = GetEndpoints();
+
+    var toolkits = endpoints.Select(x => x.DomainToolkit)
+        .Distinct().OrderBy(x => x).ToList();
+#>
+namespace <#= Platform #>.Contract
+{
+    public static class ApiEndpoints
+    { <# 
+foreach (var toolkit in toolkits) 
+{ 
+    var toolsets = endpoints
+        .Where(x => x.DomainToolkit == toolkit)
+        .Select(x => x.DomainToolset)
+        .Distinct().OrderBy(x => x).ToList();
+#>
+
+        public static class <#= toolkit #>
+        { <#
+    foreach (var toolset in toolsets) 
+    { #>
+
+            public static class <#= toolset #>
+            { <#
+        var entities = endpoints.Where(x => x.DomainToolkit == toolkit && x.DomainToolset == toolset)
+            .Select(x => x.DomainEntity)
+            .Distinct().OrderBy(x => x).ToList();
+
+        foreach (var entity in entities)
+        {
+            var endpoint = endpoints.Single(x => x.DomainToolkit == toolkit && x.DomainToolset == toolset && x.DomainEntity == entity);
+            var isTable = endpoint.DatabaseTable.StartsWith("T");
+
+            var collection = $"{endpoint.EndpointBase}/{endpoint.EndpointCollection}";
+            var item = $"/{endpoint.EndpointItem}";
+            var search = $"/search";
+
+            if (isTable)
+            {
+                all.Add($"{toolkit}.{toolset}.{entity}.Get");
+                all.Add($"{toolkit}.{toolset}.{entity}.Fetch");
+                all.Add($"{toolkit}.{toolset}.{entity}.Search");
+            
+                all.Add($"{toolkit}.{toolset}.{entity}.Create");
+                all.Add($"{toolkit}.{toolset}.{entity}.Delete"); 
+                all.Add($"{toolkit}.{toolset}.{entity}.Update");
+            }
+            else
+            {
+                all.Add($"{toolkit}.{toolset}.{entity}.Fetch");
+            }
+
+            if (isTable)
+            { #>
+
+                public static class <#= entity #>
+                {
+                    public const string Collection = "<#= collection #>";
+                    private const string item = "<#= item #>";
+                    private const string search = "<#= search #>";
+
+                    public const string Get = Collection + item;      // get one existing entity
+                    public const string Fetch = Collection;           // get all entities that match criteria
+                    public const string Search = Collection + search; // get search results that match criteria
+                
+                    public const string Create = Collection;          // create one new entity
+                    public const string Update = Collection + item;   // update one existing entity
+                    public const string Delete = Collection + item;   // delete one existing entity
+                }
+        <# 
+            } else { #>
+
+                public static class <#= entity #>
+                {
+                    public const string Collection = "<#= collection #>";
+
+                    public const string Fetch = Collection;           // get all entities that match criteria
+                }
+        <#
+            } } 
+        #>
+    }
+    <# 
+    } 
+    #>
+    }
+<# 
+} 
+#>
+    
+        public static string[] All = new string[]
+        {
+<# 
+    foreach (var endpoint in all)
+    {
+        WriteLine($"            {endpoint},");
+    }
+#>
+        };
+
+        // <#= all.Count #> endpoints
+    }
+}

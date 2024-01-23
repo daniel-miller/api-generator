@@ -1,0 +1,44 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".txt" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+    
+    var DatabaseSchema = "jobs";
+    var DatabaseTable = "TCandidateEducation";
+    var DomainEntity = DatabaseTable;
+
+    var table = GetTable(DatabaseSchema, DatabaseTable);
+    var columns = new List<DataColumn>();
+    foreach (DataColumn column in table.Columns)
+        columns.Add(column);
+    columns.Sort(new EntityColumnComparer());
+
+#>
+public class <#= DomainEntity #>
+{
+<#
+string lasttype = null;
+
+for (int i = 0; i < columns.Count; i++) 
+{ 
+    var column = columns[i];
+    var typeName = TypeNameOrAlias(column.DataType);
+    var datatype = typeName;
+    
+    if (column.AllowDBNull && datatype != "string")
+        datatype += "?";
+    
+    if (i > 0 && lasttype != typeName)
+        WriteLine("");
+    
+    Write("    public " + datatype + " " + column.ColumnName + " { get; set; }");
+        
+    WriteLine("");
+    
+    lasttype = typeName;
+}
+#>
+}

@@ -1,0 +1,188 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ output extension=".txt" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="Microsoft.VisualStudio.TextTemplating" #>
+<#@ include file="Include.ttinclude" once="true" #>
+<#
+    var settings = GetSettings();
+
+    var common = settings.CommonName;
+    var output = settings.OutputDirectory;
+    var platform = settings.PlatformName;
+
+    var endpoints = GetEndpoints().Where(x => x.DatabaseTable == "TClass");
+    
+    var root = $@"{output}\{platform}.Contract";
+    GenerateFolder(root);
+
+    GenerateClass(settings, null, @"Contract\Endpoints.ttinclude", $@"{root}\ApiEndpoints.cs");
+
+    foreach (var endpoint in endpoints)
+    {
+        var isTable = endpoint.DatabaseTable.StartsWith("T");
+
+        root = $@"{output}\{platform}.Contract";
+        
+        // Contract - Requests and Responses
+        
+        var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, endpoint.DomainEntity);
+        
+        if (isTable)
+        {
+            GenerateClass(settings, endpoint, @"Contract\SearchRequest.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchRequest.cs");
+            GenerateClass(settings, endpoint, @"Contract\SearchResponse.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchResponse.cs");
+
+            GenerateClass(settings, endpoint, @"Contract\CreateRequest.ttinclude", $@"{folder}\{endpoint.DomainEntity}CreateRequest.cs");
+            GenerateClass(settings, endpoint, @"Contract\UpdateRequest.ttinclude", $@"{folder}\{endpoint.DomainEntity}UpdateRequest.cs");
+            GenerateClass(settings, endpoint, @"Contract\GetResponse.ttinclude", $@"{folder}\{endpoint.DomainEntity}GetResponse.cs");
+        }
+        else
+        {
+            GenerateClass(settings, endpoint, @"Contract\SearchRequest.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchRequest.cs");
+            GenerateClass(settings, endpoint, @"Contract\GetResponse.ttinclude", $@"{folder}\{endpoint.DomainEntity}GetResponse.cs");
+        }
+
+        // Domain
+
+        root = $@"{output}\{platform}.Domain";
+
+        folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, endpoint.DomainEntity);
+
+        if (isTable)
+        {
+            GenerateClass(settings, endpoint, @"Domain\Table.ttinclude", $@"{folder}\{endpoint.DomainEntity}Entity.cs");
+            GenerateClass(settings, endpoint, @"Domain\TableAdapter.ttinclude", $@"{folder}\{endpoint.DomainEntity}Adapter.cs");
+            GenerateClass(settings, endpoint, @"Domain\TableSearchCriteria.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchCriteria.cs");
+        }
+        else
+        {
+            GenerateClass(settings, endpoint, @"Domain\Table.ttinclude", $@"{folder}\{endpoint.DomainEntity}Entity.cs");
+            GenerateClass(settings, endpoint, @"Domain\QueryAdapter.ttinclude", $@"{folder}\{endpoint.DomainEntity}Adapter.cs");
+            GenerateClass(settings, endpoint, @"Domain\TableSearchCriteria.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchCriteria.cs");
+        }
+
+        // Persistence
+
+        root = $@"{output}\{platform}.Persistence";
+
+        folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, endpoint.DomainEntity);
+
+        if (isTable)
+        {
+            GenerateClass(settings, endpoint, @"Persistence\TableConfiguration.ttinclude", $@"{folder}\{endpoint.DomainEntity}EntityConfiguration.cs");
+            GenerateClass(settings, endpoint, @"Persistence\TableSearch.ttinclude", $@"{folder}\{endpoint.DomainEntity}Search.cs");
+            GenerateClass(settings, endpoint, @"Persistence\TableSearchCriteriaValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchCriteriaValidator.cs");
+            GenerateClass(settings, endpoint, @"Persistence\TableService.ttinclude", $@"{folder}\{endpoint.DomainEntity}Service.cs");
+            GenerateClass(settings, endpoint, @"Persistence\TableStore.ttinclude", $@"{folder}\{endpoint.DomainEntity}Store.cs");
+            GenerateClass(settings, endpoint, @"Persistence\TableValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}EntityValidator.cs");
+        }
+        else
+        {
+            GenerateClass(settings, endpoint, @"Persistence\TableConfiguration.ttinclude", $@"{folder}\{endpoint.DomainEntity}EntityConfiguration.cs");
+            GenerateClass(settings, endpoint, @"Persistence\QuerySearch.ttinclude", $@"{folder}\{endpoint.DomainEntity}Search.cs");
+            GenerateClass(settings, endpoint, @"Persistence\TableSearchCriteriaValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchCriteriaValidator.cs");
+            GenerateClass(settings, endpoint, @"Persistence\QueryService.ttinclude", $@"{folder}\{endpoint.DomainEntity}Service.cs");
+        }
+
+        // API - Controllers
+
+        root = $@"{output}\{platform}.Api";
+
+        folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, "-");
+
+        if (isTable)
+        {
+            GenerateClass(settings, endpoint, @"Api\TableController.ttinclude", $@"{folder}\{endpoint.DomainEntity}Controller.cs");
+        }
+        else
+        {
+            GenerateClass(settings, endpoint, @"Api\QueryController.ttinclude", $@"{folder}\{endpoint.DomainEntity}Controller.cs");
+        }
+
+        // SDK - Clients
+
+        root = $@"{output}\{platform}.Sdk";
+
+        folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, "-");
+
+        if (isTable)
+        {
+            GenerateClass(settings, endpoint, @"Sdk\TableClient.ttinclude", $@"{folder}\{endpoint.DomainEntity}Client.cs");
+        }
+        else
+        {
+            GenerateClass(settings, endpoint, @"Sdk\QueryClient.ttinclude", $@"{folder}\{endpoint.DomainEntity}Client.cs");
+        }
+    }
+#>
+<#+
+    public string GeneratePath(string a, string b, string c, string d)
+    {
+        var path = a;
+
+        if (b != "-")
+            path += $@"\{b}";
+
+        if (c != "-")
+            path += $@"\{c}";
+        
+        if (d != "-")
+            path += $@"\{d}";
+         
+        GenerateFolder(path);
+
+        return path;
+    }
+
+    public void GenerateFolder(string folder)
+    {
+        if (!Directory.Exists(folder))
+            Directory.CreateDirectory(folder);
+    }
+
+    public void GenerateClass(TemplateSettings settings, ApiEndpoint endpoint, string input, string output)
+    {
+        string templateFile = this.Host.ResolvePath(input);
+        string templateContent = File.ReadAllText(templateFile);
+
+        TextTemplatingSession session = new TextTemplatingSession();
+        
+        session["Common"] = settings.CommonName;
+        session["Platform"] = settings.PlatformName;
+
+        if (endpoint != null) 
+        {
+            session["DatabaseSchema"] = endpoint.DatabaseSchema;
+            session["DatabaseTable"] = endpoint.DatabaseTable;
+            session["DatabasePrimaryKey"] = endpoint.DatabasePrimaryKey;
+
+            session["DomainToolkit"] = endpoint.DomainToolkit;
+            session["DomainToolset"] = endpoint.DomainToolset;
+            session["DomainEntity"] = endpoint.DomainEntity;
+        }
+        
+        var sessionHost = (ITextTemplatingSessionHost) this.Host;
+        sessionHost.Session = session;
+
+        Engine engine = new Engine();
+        string generatedContent = engine.ProcessTemplate(templateContent, this.Host);
+
+        File.WriteAllText(output, generatedContent);
+    }
+
+    void ProcessTemplate(string templateFileName, string outputFileName)
+    {
+        string templateDirectory = Path.GetDirectoryName(Host.TemplateFile);
+        string outputFilePath = Path.Combine(templateDirectory, outputFileName);  
+
+        string template = File.ReadAllText(Host.ResolvePath(templateFileName));
+        Engine engine = new Engine();
+        string output = engine.ProcessTemplate(template, Host);  
+
+        File.WriteAllText(outputFilePath, output);
+    }
+#>

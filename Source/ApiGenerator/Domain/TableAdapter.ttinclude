@@ -1,0 +1,120 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".txt" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ parameter type="System.String" name="Common" #>
+<#@ parameter type="System.String" name="Platform" #>
+<#@ parameter type="System.String" name="DatabaseSchema" #>
+<#@ parameter type="System.String" name="DatabaseTable" #>
+<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+    
+    var table = GetTable(DatabaseSchema, DatabaseTable);
+    var columns = table.Columns;
+    var primaryKey = table.PrimaryKey;
+
+#>
+using <#= Common #>.Contract;
+
+using <#= Platform #>.Contract;
+
+namespace <#= Platform #>.Domain;
+
+public class <#= DomainEntity #>Adapter
+{
+    private readonly Identity _identity;
+
+    public <#= DomainEntity #>Adapter(Identity identity)
+    {
+        _identity = identity;
+    }
+
+    public void Copy(<#= DomainEntity #>UpdateRequest request, <#= DomainEntity #>Entity entity)
+    {
+        
+    }
+
+    public <#= DomainEntity #>SearchCriteria ToCriteria(<#= DomainEntity #>SearchRequest request)
+    {
+        var criteria = new <#= DomainEntity #>SearchCriteria
+        {
+            Identity = _identity,
+            Page = request.Page,
+            Rows = request.Take,
+<#
+for (int i = 0; i < primaryKey.Length; i++) 
+{        
+    Write("            " + primaryKey[i].ColumnName + " = request." + primaryKey[i].ColumnName);
+    if (i < primaryKey.Length - 1)
+        WriteLine(",");
+}
+#>
+
+        };
+        return criteria;
+    }
+
+    public <#= DomainEntity #>Entity ToEntity(<#= DomainEntity #>CreateRequest request)
+    {
+        var entity = new <#= DomainEntity #>Entity
+        {
+            
+        };
+        return entity;
+    }
+
+    public <#= DomainEntity #>Entity ToEntity(<#= DomainEntity #>UpdateRequest request, Guid id)
+    {
+        var entity = new <#= DomainEntity #>Entity
+        {
+            
+        };
+        return entity;
+    }
+
+    public IEnumerable<<#= DomainEntity #>GetResponse> ToFetchResponse(IEnumerable<<#= DomainEntity #>Entity> entities)
+    {
+        return entities.Select(x => ToGetResponse(x));
+    }
+
+    public <#= DomainEntity #>GetResponse ToGetResponse(<#= DomainEntity #>Entity entity)
+    {
+        var response = new <#= DomainEntity #>GetResponse
+        {
+<#
+for (int i = 0; i < columns.Count; i++) 
+{        
+    Write("            " + columns[i].ColumnName + " = entity." + columns[i].ColumnName);
+    if (i < columns.Count - 1)
+        WriteLine(",");
+}
+#>            
+        };
+
+        return response;
+    }
+
+    public IEnumerable<<#= DomainEntity #>SearchResponse> ToSearchResponse(IEnumerable<<#= DomainEntity #>Entity> entities)
+    {
+        return entities.Select(x => ToSearchResponse(x));
+    }
+
+    public <#= DomainEntity #>SearchResponse ToSearchResponse(<#= DomainEntity #>Entity entity)
+    {
+        var response = new <#= DomainEntity #>SearchResponse
+        {
+<#
+for (int i = 0; i < primaryKey.Length; i++) 
+{        
+    Write("            " + primaryKey[i].ColumnName + " = entity." + primaryKey[i].ColumnName);
+    if (i < primaryKey.Length - 1)
+        WriteLine(",");
+}
+#>
+        };
+
+        return response;
+    }
+}

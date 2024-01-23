@@ -1,0 +1,85 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".txt" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ parameter type="System.String" name="Platform" #>
+<#@ parameter type="System.String" name="DatabaseSchema" #>
+<#@ parameter type="System.String" name="DatabaseTable" #>
+<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+    
+    var table = GetTable(DatabaseSchema, DatabaseTable);
+
+    string DatabaseTablePlural = PluralizeNoun(DatabaseTable);
+    string DomainEntityPlural = PluralizeNoun(DomainEntity);
+
+    var pkParameters = "";
+    var pkExpression = "";
+    var pkProperties = "";
+    var pkValues = "";
+    for (int i = 0; i < table.PrimaryKey.Length; i++)
+    {
+        if (i > 0)
+        {
+            pkParameters += ", ";
+            pkExpression += " && ";
+            pkProperties += ", ";
+        }
+        var column = table.PrimaryKey[i];
+        var typeName = TypeNameOrAlias(column.DataType);
+        pkParameters += typeName + " " + ConvertFirstLetterToLowercase(column.ColumnName);
+        pkExpression += "x." + column.ColumnName + " == " + ConvertFirstLetterToLowercase(column.ColumnName);
+        pkProperties += "entity." + column.ColumnName;
+        pkValues += column.ColumnName + " {entity." + column.ColumnName + "}";
+    }
+#>
+using Microsoft.EntityFrameworkCore;
+
+using <#= Platform #>.Domain;
+
+namespace <#= Platform #>.Persistence;
+
+public class <#= DomainEntity #>Store
+{
+    private readonly TableDbContext _db;
+        
+    public <#= DomainEntity #>Store(TableDbContext db)
+    {
+        _db = db;
+    }
+
+    public async Task<bool> InsertAsync(<#= DomainEntity #>Entity entity, CancellationToken token)
+    {
+        var exists = await ExistsAsync(<#= pkProperties #>, token);
+        if (exists)
+            return false;
+                
+        await _db.<#= DomainEntityPlural #>.AddAsync(entity);
+        return await _db.SaveChangesAsync(token) > 0;
+    }
+        
+    public async Task<bool> UpdateAsync(<#= DomainEntity #>Entity entity, CancellationToken token)
+    {
+        var exists = await ExistsAsync(<#= pkProperties #>, token);
+        if (!exists)
+            return false;
+
+        _db.Entry(entity).State = EntityState.Modified;
+        return await _db.SaveChangesAsync(token) > 0;
+    }
+        
+    public async Task<bool> DeleteAsync(<#= pkParameters #>, CancellationToken token)
+    {
+        var entity = await _db.<#= DomainEntityPlural #>.SingleOrDefaultAsync(x => <#= pkExpression #>, token);
+        if (entity == null)
+            return false;
+
+        _db.<#= DomainEntityPlural #>.Remove(entity);
+        return await _db.SaveChangesAsync(token) > 0;
+    }
+        
+    private async Task<bool> ExistsAsync(<#= pkParameters #>, CancellationToken token)
+		=> await _db.<#= DomainEntityPlural #>.AsNoTracking().AnyAsync(x => <#= pkExpression #>, token);
+}

@@ -1,0 +1,181 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".txt" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ parameter type="System.String" name="Common" #>
+<#@ parameter type="System.String" name="Platform" #>
+<#@ parameter type="System.String" name="DatabaseSchema" #>
+<#@ parameter type="System.String" name="DatabaseTable" #>
+<#@ parameter type="System.String" name="DomainToolkit" #>
+<#@ parameter type="System.String" name="DomainToolset" #>
+<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+    
+    var table = GetTable(DatabaseSchema, DatabaseTable);
+    
+    string DomainEntityPlural = PluralizeNoun(DomainEntity);
+    string entity = ConvertFirstLetterToLowercase(DomainEntity);
+
+    var pkParameters = "";
+    var pkExpression = "";
+    var pkProperties = "";
+    var pkValuesForCreate = "";
+    var pkValuesForUpdate = "";
+    for (int i = 0; i < table.PrimaryKey.Length; i++)
+    {
+        if (i > 0)
+        {
+            pkParameters += ", ";
+            pkExpression += " && ";
+            pkProperties += ", ";
+        }
+        var column = table.PrimaryKey[i];
+        var typeName = TypeNameOrAlias(column.DataType);
+        pkParameters += "[FromRoute] " + typeName + " " + ConvertFirstLetterToLowercase(column.ColumnName);
+        pkExpression += "x." + column.ColumnName + " == " + ConvertFirstLetterToLowercase(column.ColumnName);
+        pkProperties += ConvertFirstLetterToLowercase(column.ColumnName);
+        pkValuesForCreate += column.ColumnName + " {entity." + column.ColumnName + "}";
+        pkValuesForUpdate += column.ColumnName + " {" + ConvertFirstLetterToLowercase(column.ColumnName) + "}";
+    }
+
+    var apiGroup = DomainToolkit;
+    if (DomainToolset != "-")
+        apiGroup += ": " + DomainToolset;
+
+    var apiSpace = DomainToolkit;
+    if (DomainToolset != "-")
+        apiSpace += "." + DomainToolset;
+    if (DomainEntity != "-")
+        apiSpace += "." + DomainEntity;
+#>
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+using <#= Common #>.Contract;
+
+using <#= Platform #>.Contract;
+using <#= Platform #>.Domain;
+using <#= Platform #>.Persistence;
+
+namespace <#= Platform #>.Api.<#= DomainToolkit #>;
+
+[ApiController]
+[ApiExplorerSettings(GroupName = "<#= apiGroup #>")]
+[Authorize]
+public class <#= DomainEntity #>Controller : ControllerBase
+{
+    private readonly I<#= DomainEntity #>Service _<#= entity #>Service;
+
+    public <#= DomainEntity #>Controller(I<#= DomainEntity #>Service <#= entity #>Service)
+    {
+        _<#= entity #>Service = <#= entity #>Service;
+    }
+
+    [Authorize(ApiEndpoints.<#= apiSpace #>.Create)]
+    [HttpPost(ApiEndpoints.<#= apiSpace #>.Create)]
+    [ProducesResponseType(typeof(<#= DomainEntity #>GetResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationFailureResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Create([FromBody] <#= DomainEntity #>CreateRequest request, CancellationToken token)
+    {
+        var identity = HttpContext.GetIdentity();
+        var adapter = new <#= DomainEntity #>Adapter(identity);
+
+        var entity = adapter.ToEntity(request);
+        var created = await _<#= entity #>Service.CreateAsync(entity, token);
+        if (!created)
+        {
+            return BadRequest($"Duplicate not permitted. Entity already exists: <#= pkValuesForCreate #>. You cannot insert a new entity with the same primary key.");
+        }
+
+        var response = adapter.ToGetResponse(entity);
+        return CreatedAtAction(nameof(Create), response);
+    }
+
+    [Authorize(ApiEndpoints.<#= apiSpace #>.Delete)]
+    [HttpDelete(ApiEndpoints.<#= apiSpace #>.Delete)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(<#= pkParameters #>, CancellationToken token)
+    {
+        var deleted = await _<#= entity #>Service.DeleteAsync(<#= pkProperties #>, token);
+        if (!deleted)
+        {
+            return NotFound();
+        }
+        return Ok();
+    }
+
+    [Authorize(ApiEndpoints.<#= apiSpace #>.Fetch)]
+    [HttpGet(ApiEndpoints.<#= apiSpace #>.Fetch)]
+    [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>GetResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Fetch([FromQuery] <#= DomainEntity #>SearchRequest request, CancellationToken token)
+    {
+        var identity = HttpContext.GetIdentity();
+        var adapter = new <#= DomainEntity #>Adapter(identity);
+
+        var criteria = adapter.ToCriteria(request);
+        var results = await _<#= entity #>Service.SearchAsync(criteria, token);
+        var count = await _<#= entity #>Service.CountAsync(criteria, token);
+
+        Response.AddPagination(request.Page, request.Take, results.Count(), count);
+
+        var response = adapter.ToFetchResponse(results);
+        return Ok(response);
+    }
+
+    [Authorize(ApiEndpoints.<#= apiSpace #>.Get)]
+    [HttpGet(ApiEndpoints.<#= apiSpace #>.Get)]
+    [ProducesResponseType(typeof(<#= DomainEntity #>GetResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Get(<#= pkParameters #>, CancellationToken token)
+    {
+        var identity = HttpContext.GetIdentity();
+        var adapter = new <#= DomainEntity #>Adapter(identity);
+
+        var result = await _<#= entity #>Service.GetAsync(<#= pkProperties #>, token);
+
+        var response = result;
+        return Ok(response);
+    }
+
+    [Authorize(ApiEndpoints.<#= apiSpace #>.Search)]
+    [HttpGet(ApiEndpoints.<#= apiSpace #>.Search)]
+    [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>SearchResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Search([FromQuery] <#= DomainEntity #>SearchRequest request, CancellationToken token)
+    {
+        var identity = HttpContext.GetIdentity();
+        var adapter = new <#= DomainEntity #>Adapter(identity);
+
+        var criteria = adapter.ToCriteria(request);
+        var results = await _<#= entity #>Service.SearchAsync(criteria, token);
+        var count = await _<#= entity #>Service.CountAsync(criteria, token);
+
+        Response.AddPagination(request.Page, request.Take, results.Count(), count);
+
+        var response = adapter.ToSearchResponse(results);
+        return Ok(response);
+    }
+
+    [Authorize(ApiEndpoints.<#= apiSpace #>.Update)]
+    [HttpPut(ApiEndpoints.<#= apiSpace #>.Update)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ValidationFailureResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Update(<#= pkParameters #>, [FromBody] <#= DomainEntity #>UpdateRequest request, CancellationToken token)
+    {
+        var identity = HttpContext.GetIdentity();
+        var adapter = new <#= DomainEntity #>Adapter(identity);
+
+        var entity = await _<#= entity #>Service.GetAsync(<#= pkProperties #>, token);
+        if (entity is null)
+            return NotFound($"Entity not found: <#= pkValuesForUpdate #>. You cannot update an entity that is not in the system.");
+
+        adapter.Copy(request, entity);
+        var updated = await _<#= entity #>Service.UpdateAsync(entity, token);
+        if (!updated)
+            return NotFound($"Entity not updated:");
+        
+        return Ok();
+    }
+}

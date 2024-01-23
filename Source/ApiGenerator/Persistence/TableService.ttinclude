@@ -1,0 +1,103 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".txt" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ parameter type="System.String" name="Platform" #>
+<#@ parameter type="System.String" name="DatabaseSchema" #>
+<#@ parameter type="System.String" name="DatabaseTable" #>
+<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+    
+    var table = GetTable(DatabaseSchema, DatabaseTable);
+
+    var pkParameters = "";
+    var pkExpression = "";
+    var pkProperties = "";
+    var pkValues = "";
+    for (int i = 0; i < table.PrimaryKey.Length; i++)
+    {
+        if (i > 0)
+        {
+            pkParameters += ", ";
+            pkExpression += " && ";
+            pkProperties += ", ";
+            pkValues += ", ";
+        }
+        var column = table.PrimaryKey[i];
+        var typeName = TypeNameOrAlias(column.DataType);
+        pkParameters += typeName + " " + ConvertFirstLetterToLowercase(column.ColumnName);
+        pkExpression += "x." + column.ColumnName + " == " + ConvertFirstLetterToLowercase(column.ColumnName);
+        pkProperties += "entity." + column.ColumnName;
+        pkValues += ConvertFirstLetterToLowercase(column.ColumnName);
+    }
+
+#>
+using FluentValidation;
+
+using <#= Platform #>.Domain;
+
+namespace <#= Platform #>.Persistence;
+
+public interface I<#= DomainEntity #>Service
+{
+    Task<int> CountAsync(<#= DomainEntity #>SearchCriteria criteria, CancellationToken token);
+    Task<bool> CreateAsync(<#= DomainEntity #>Entity entity, CancellationToken token);
+    Task<bool> DeleteAsync(<#= pkParameters #>, CancellationToken token);
+    Task<<#= DomainEntity #>Entity?> GetAsync(<#= pkParameters #>, CancellationToken token);
+    Task<IEnumerable<<#= DomainEntity #>Entity>> SearchAsync(<#= DomainEntity #>SearchCriteria criteria, CancellationToken token);
+    Task<bool> UpdateAsync(<#= DomainEntity #>Entity entity, CancellationToken token);
+}
+
+public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
+{
+    private readonly <#= DomainEntity #>Search _search;
+    private readonly <#= DomainEntity #>Store _store;
+    private readonly IValidator<<#= DomainEntity #>SearchCriteria> _criteriaValidator;
+    private readonly IValidator<<#= DomainEntity #>Entity> _entityValidator;
+
+    public <#= DomainEntity #>Service(<#= DomainEntity #>Search search, <#= DomainEntity #>Store store, IValidator<<#= DomainEntity #>SearchCriteria> criteriaValidator, IValidator<<#= DomainEntity #>Entity> entityValidator)
+    {
+        _search = search;
+        _store = store;
+        _criteriaValidator = criteriaValidator;
+        _entityValidator = entityValidator;
+    }
+
+    public async Task<int> CountAsync(<#= DomainEntity #>SearchCriteria criteria, CancellationToken token)
+    {
+        return await _search.CountAsync(criteria, token);
+    }
+
+    public async Task<bool> CreateAsync(<#= DomainEntity #>Entity entity, CancellationToken token)
+    {
+        await _entityValidator.ValidateAndThrowAsync(entity, token);
+
+        return await _store.InsertAsync(entity, token);
+    }
+
+    public async Task<bool> DeleteAsync(<#= pkParameters #>, CancellationToken token)
+    {
+        return await _store.DeleteAsync(<#= pkValues #>, token);
+    }
+
+    public async Task<<#= DomainEntity #>Entity?> GetAsync(<#= pkParameters #>, CancellationToken token)
+    {
+        return await _search.GetAsync(<#= pkValues #>, token);
+    }
+
+    public async Task<IEnumerable<<#= DomainEntity #>Entity>> SearchAsync(<#= DomainEntity #>SearchCriteria criteria, CancellationToken token)
+    {
+        await _criteriaValidator.ValidateAndThrowAsync(criteria, token);
+
+        return await _search.SearchAsync(criteria, token);
+    }
+
+    public async Task<bool> UpdateAsync(<#= DomainEntity #>Entity entity, CancellationToken token)
+    {
+        await _entityValidator.ValidateAndThrowAsync(entity, token);
+
+        return await _store.UpdateAsync(entity, token);
+    }
+}

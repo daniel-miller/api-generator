@@ -1,0 +1,79 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".txt" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ parameter type="System.String" name="Platform" #>
+<#@ parameter type="System.String" name="DatabaseSchema" #>
+<#@ parameter type="System.String" name="DatabaseTable" #>
+<#@ parameter type="System.String" name="DatabasePrimaryKey" #>
+<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+
+    var table = GetTable(DatabaseSchema, DatabaseTable);
+    var columns = new List<DataColumn>();
+    foreach (DataColumn column in table.Columns)
+        columns.Add(column);
+    columns.Sort(new ConfigurationColumnComparer());
+
+    var pkColumnNames = "x." + String.Join(", x.", DatabasePrimaryKey.Split(new []{','}));
+#>
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+using Festival.Domain;
+
+namespace <#= Platform #>.Persistence;
+
+internal class <#= DomainEntity #>Configuration : IEntityTypeConfiguration<<#= DomainEntity #>Entity>
+{
+    public void Configure(EntityTypeBuilder<<#= DomainEntity #>Entity> builder) 
+    {
+        builder.ToTable("<#= DatabaseTable #>", "<#= DatabaseSchema #>");
+        builder.HasKey(x => new { <#= pkColumnNames #> });
+            
+<# 
+
+for (int i = 0; i < columns.Count; i++) 
+{ 
+    var column = columns[i];
+    
+    Write("        builder.Property(x => x." + column.ColumnName + ")");
+    
+    if (!column.AllowDBNull)
+    {
+        Write(".IsRequired()");
+    }
+    
+    if (column.DataType == typeof(string))
+    {
+        if (GetNativeType(DatabaseTable, column.ColumnName) == "nvarchar")
+        {
+            Write(".IsUnicode(true)");
+        }
+        else
+        {
+            Write(".IsUnicode(false)");
+        }
+        
+        if (column.MaxLength > -1)
+        {
+            Write(".HasMaxLength(" + column.MaxLength + ")");
+        }
+    }
+    else if (column.DataType == typeof(decimal))
+    {
+        var precision = GetColumnPrecision(DatabaseTable, column.ColumnName);
+        var scale = GetColumnScale(DatabaseTable, column.ColumnName);
+        if (precision != null && scale != null)
+        {
+            Write($".HasPrecision({precision}, {scale})");
+        }
+    }
+        
+    WriteLine(";");
+}
+#>
+    }
+}
