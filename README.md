@@ -62,5 +62,5 @@ I use this query to identify API endpoint specifications for which there is no c
 
 ```
 select * from databases.TApiEndpoint as e where not exists 
-(select TABLE_TYPE from INFORMATION_SCHEMA.TABLES as t where TABLE_SCHEMA = e.DatabaseSchema and t.TABLE_NAME = e.DatabaseTable)
+(select * from INFORMATION_SCHEMA.TABLES as t where TABLE_SCHEMA = e.DatabaseSchema and t.TABLE_NAME = e.DatabaseTable)
 ```
