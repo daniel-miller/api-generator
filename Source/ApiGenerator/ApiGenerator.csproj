@@ -65,6 +65,15 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Include.ttinclude</DependentUpon>
     </None>
+    <None Update="Persistence\TableDbContext.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>TableDbContext.txt</LastGenOutput>
+    </None>
+    <None Update="Persistence\TableDbContext.txt">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TableDbContext.tt</DependentUpon>
+    </None>
     <None Update="ViewAdapter.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ViewAdapter.txt</LastGenOutput>

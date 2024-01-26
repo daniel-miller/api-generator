@@ -4,10 +4,12 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
+<#@ parameter type="System.String" name="Common" #>
 <#@ parameter type="System.String" name="Platform" #>
 <#@ parameter type="System.String" name="DatabaseSchema" #>
 <#@ parameter type="System.String" name="DatabaseTable" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
+<#@ parameter type="System.String" name="DomainToolkit" #>
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
     
     var table = GetTable(DatabaseSchema, DatabaseTable);
@@ -15,7 +17,9 @@
     var primaryKey = table.PrimaryKey;
 
 #>
-namespace <#= Platform #>.Domain;
+using <#= Common #>.Contract;
+
+namespace <#= Platform #>.Domain.<#= DomainToolkit #>;
 
 public class <#= DomainEntity #>SearchCriteria : SearchCriteria
 {

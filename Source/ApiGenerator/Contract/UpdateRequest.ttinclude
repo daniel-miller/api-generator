@@ -8,6 +8,7 @@
 <#@ parameter type="System.String" name="DatabaseSchema" #>
 <#@ parameter type="System.String" name="DatabaseTable" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
+<#@ parameter type="System.String" name="DomainToolkit" #>
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
     
     var table = GetTable(DatabaseSchema, DatabaseTable);
@@ -19,7 +20,7 @@
 #>
 using System;
 
-namespace <#= Platform #>.Contract
+namespace <#= Platform #>.Contract.<#= DomainToolkit #>
 {
     public class <#= DomainEntity #>UpdateRequest
     {
@@ -36,7 +37,7 @@ for (int i = 0; i < columns.Count; i++)
     var typeName = TypeNameOrAlias(column.DataType);
 
     var datatype = typeName;
-    if (column.AllowDBNull && datatype != "string")
+    if (column.AllowDBNull && datatype != "string" && datatype != "byte[]")
         datatype += "?";
     
     if (i > 0 && lasttype != typeName)

@@ -9,6 +9,7 @@
 <#@ parameter type="System.String" name="DatabaseSchema" #>
 <#@ parameter type="System.String" name="DatabaseTable" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
+<#@ parameter type="System.String" name="DomainToolkit" #>
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
     
     var table = GetTable(DatabaseSchema, DatabaseTable);
@@ -34,7 +35,7 @@ using System;
 
 using <#= Common #>.Contract;
 
-namespace <#= Platform #>.Contract
+namespace <#= Platform #>.Contract.<#= DomainToolkit #>
 {
     public class <#= DomainEntity #>SearchRequest : PagedRequest
     {

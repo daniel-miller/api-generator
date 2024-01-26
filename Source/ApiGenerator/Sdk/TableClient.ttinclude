@@ -50,14 +50,12 @@
     if (DomainEntity != "-")
         apiSpace += "." + DomainEntity;
 #>
-using System;
-using System.Collections.Generic;
-
 using <#= Common #>.Sdk;
 
 using <#= Platform #>.Contract;
+using <#= Platform #>.Contract.<#= DomainToolkit #>;
 
-namespace <#= Platform #>.Sdk
+namespace <#= Platform #>.Sdk.<#= DomainToolkit #>
 {
     public class <#= DomainEntity #>Client : SdkClient
     {

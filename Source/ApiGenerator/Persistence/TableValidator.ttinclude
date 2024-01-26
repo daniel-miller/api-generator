@@ -8,14 +8,15 @@
 <#@ parameter type="System.String" name="DatabaseSchema" #>
 <#@ parameter type="System.String" name="DatabaseTable" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
+<#@ parameter type="System.String" name="DomainToolkit" #>
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
     
 #>
 using FluentValidation;
 
-using <#= Platform #>.Domain;
+using <#= Platform #>.Domain.<#= DomainToolkit #>;
 
-namespace <#= Platform #>.Persistence;
+namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
 
 public class <#= DomainEntity #>EntityValidator : AbstractValidator<<#= DomainEntity #>Entity>
 {

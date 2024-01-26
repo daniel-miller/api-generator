@@ -40,7 +40,7 @@ foreach (var toolkit in toolkits)
         foreach (var entity in entities)
         {
             var endpoint = endpoints.Single(x => x.DomainToolkit == toolkit && x.DomainToolset == toolset && x.DomainEntity == entity);
-            var isTable = endpoint.DatabaseTable.StartsWith("T");
+            var isTable = IsTable(endpoint.DatabaseSchema, endpoint.DatabaseTable);
 
             var collection = $"{endpoint.EndpointBase}/{endpoint.EndpointCollection}";
             var item = $"/{endpoint.EndpointItem}";

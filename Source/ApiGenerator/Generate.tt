@@ -14,112 +14,162 @@
     var output = settings.OutputDirectory;
     var platform = settings.PlatformName;
 
-    var endpoints = GetEndpoints().Where(x => x.DatabaseTable == "TClass");
+    var endpoints = GetEndpoints(); // .Where(x => x.DatabaseTable == "Standard");
     
-    var root = $@"{output}\{platform}.Contract";
-    GenerateFolder(root);
+    TextTemplatingSession session = new TextTemplatingSession();
+    session["Common"] = settings.CommonName;
+    session["Platform"] = settings.PlatformName;
 
-    GenerateClass(settings, null, @"Contract\Endpoints.ttinclude", $@"{root}\ApiEndpoints.cs");
+    Engine engine = new Engine();
+
+    var project = Host.ResolveAssemblyReference("$(ProjectDir)");
+    var root = CreateFolder($@"{output}\{platform}.Contract");
+
+    GenerateClass(engine, session, null, $@"{project}\Contract\Endpoints.ttinclude", $@"{root}\ApiEndpoints.cs");
 
     foreach (var endpoint in endpoints)
     {
-        var isTable = endpoint.DatabaseTable.StartsWith("T");
+        var isTable = IsTable(endpoint.DatabaseSchema, endpoint.DatabaseTable);
 
-        root = $@"{output}\{platform}.Contract";
-        
+        // Instructions:
+        // Uncomment the code-generation function for each layer you want to generate.
+
         // Contract - Requests and Responses
-        
-        var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, endpoint.DomainEntity);
-        
-        if (isTable)
-        {
-            GenerateClass(settings, endpoint, @"Contract\SearchRequest.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchRequest.cs");
-            GenerateClass(settings, endpoint, @"Contract\SearchResponse.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchResponse.cs");
+        // GenerateContractLayer(engine, session, endpoint, isTable, project, $@"{output}\{platform}.Contract");
 
-            GenerateClass(settings, endpoint, @"Contract\CreateRequest.ttinclude", $@"{folder}\{endpoint.DomainEntity}CreateRequest.cs");
-            GenerateClass(settings, endpoint, @"Contract\UpdateRequest.ttinclude", $@"{folder}\{endpoint.DomainEntity}UpdateRequest.cs");
-            GenerateClass(settings, endpoint, @"Contract\GetResponse.ttinclude", $@"{folder}\{endpoint.DomainEntity}GetResponse.cs");
-        }
-        else
-        {
-            GenerateClass(settings, endpoint, @"Contract\SearchRequest.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchRequest.cs");
-            GenerateClass(settings, endpoint, @"Contract\GetResponse.ttinclude", $@"{folder}\{endpoint.DomainEntity}GetResponse.cs");
-        }
+        // Domain - Entities and Adapters
+        // GenerateDomainLayer(engine, session, endpoint, isTable, project, $@"{output}\{platform}.Domain");
 
-        // Domain
-
-        root = $@"{output}\{platform}.Domain";
-
-        folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, endpoint.DomainEntity);
-
-        if (isTable)
-        {
-            GenerateClass(settings, endpoint, @"Domain\Table.ttinclude", $@"{folder}\{endpoint.DomainEntity}Entity.cs");
-            GenerateClass(settings, endpoint, @"Domain\TableAdapter.ttinclude", $@"{folder}\{endpoint.DomainEntity}Adapter.cs");
-            GenerateClass(settings, endpoint, @"Domain\TableSearchCriteria.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchCriteria.cs");
-        }
-        else
-        {
-            GenerateClass(settings, endpoint, @"Domain\Table.ttinclude", $@"{folder}\{endpoint.DomainEntity}Entity.cs");
-            GenerateClass(settings, endpoint, @"Domain\QueryAdapter.ttinclude", $@"{folder}\{endpoint.DomainEntity}Adapter.cs");
-            GenerateClass(settings, endpoint, @"Domain\TableSearchCriteria.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchCriteria.cs");
-        }
-
-        // Persistence
-
-        root = $@"{output}\{platform}.Persistence";
-
-        folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, endpoint.DomainEntity);
-
-        if (isTable)
-        {
-            GenerateClass(settings, endpoint, @"Persistence\TableConfiguration.ttinclude", $@"{folder}\{endpoint.DomainEntity}EntityConfiguration.cs");
-            GenerateClass(settings, endpoint, @"Persistence\TableSearch.ttinclude", $@"{folder}\{endpoint.DomainEntity}Search.cs");
-            GenerateClass(settings, endpoint, @"Persistence\TableSearchCriteriaValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchCriteriaValidator.cs");
-            GenerateClass(settings, endpoint, @"Persistence\TableService.ttinclude", $@"{folder}\{endpoint.DomainEntity}Service.cs");
-            GenerateClass(settings, endpoint, @"Persistence\TableStore.ttinclude", $@"{folder}\{endpoint.DomainEntity}Store.cs");
-            GenerateClass(settings, endpoint, @"Persistence\TableValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}EntityValidator.cs");
-        }
-        else
-        {
-            GenerateClass(settings, endpoint, @"Persistence\TableConfiguration.ttinclude", $@"{folder}\{endpoint.DomainEntity}EntityConfiguration.cs");
-            GenerateClass(settings, endpoint, @"Persistence\QuerySearch.ttinclude", $@"{folder}\{endpoint.DomainEntity}Search.cs");
-            GenerateClass(settings, endpoint, @"Persistence\TableSearchCriteriaValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchCriteriaValidator.cs");
-            GenerateClass(settings, endpoint, @"Persistence\QueryService.ttinclude", $@"{folder}\{endpoint.DomainEntity}Service.cs");
-        }
+        // Persistence - Repositories (Search and Store)
+        // GeneratePersistenceLayer(engine, session, endpoint, isTable, project, $@"{output}\{platform}.Persistence");
 
         // API - Controllers
-
-        root = $@"{output}\{platform}.Api";
-
-        folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, "-");
-
-        if (isTable)
-        {
-            GenerateClass(settings, endpoint, @"Api\TableController.ttinclude", $@"{folder}\{endpoint.DomainEntity}Controller.cs");
-        }
-        else
-        {
-            GenerateClass(settings, endpoint, @"Api\QueryController.ttinclude", $@"{folder}\{endpoint.DomainEntity}Controller.cs");
-        }
+        // GenerateApiLayer(engine, session, endpoint, isTable, project, $@"{output}\{platform}.Api");
 
         // SDK - Clients
-
-        root = $@"{output}\{platform}.Sdk";
-
-        folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, "-");
-
-        if (isTable)
-        {
-            GenerateClass(settings, endpoint, @"Sdk\TableClient.ttinclude", $@"{folder}\{endpoint.DomainEntity}Client.cs");
-        }
-        else
-        {
-            GenerateClass(settings, endpoint, @"Sdk\QueryClient.ttinclude", $@"{folder}\{endpoint.DomainEntity}Client.cs");
-        }
+        // GenerateSdkLayer(engine, session, endpoint, isTable, project, $@"{output}\{platform}.Sdk");
     }
 #>
 <#+
+    public void GenerateContractLayer(Engine engine, TextTemplatingSession session, ApiEndpoint endpoint, bool isTable, string project, string root)
+    {
+        var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, endpoint.DomainEntity);
+
+        if (isTable)
+        {
+            GenerateClass(engine, session, endpoint, $@"{project}\Contract\SearchRequest.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchRequest.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Contract\SearchResponse.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchResponse.cs");
+
+            GenerateClass(engine, session, endpoint, $@"{project}\Contract\CreateRequest.ttinclude", $@"{folder}\{endpoint.DomainEntity}CreateRequest.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Contract\UpdateRequest.ttinclude", $@"{folder}\{endpoint.DomainEntity}UpdateRequest.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Contract\GetResponse.ttinclude", $@"{folder}\{endpoint.DomainEntity}GetResponse.cs");
+        }
+        else
+        {
+            GenerateClass(engine, session, endpoint, $@"{project}\Contract\SearchRequest.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchRequest.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Contract\GetResponse.ttinclude", $@"{folder}\{endpoint.DomainEntity}GetResponse.cs");
+        }
+    }
+    
+    public void GenerateDomainLayer(Engine engine, TextTemplatingSession session, ApiEndpoint endpoint, bool isTable, string project, string root)
+    {
+        var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, endpoint.DomainEntity);
+
+        if (isTable)
+        {
+            GenerateClass(engine, session, endpoint, $@"{project}\Domain\Table.ttinclude", $@"{folder}\{endpoint.DomainEntity}Entity.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Domain\TableAdapter.ttinclude", $@"{folder}\{endpoint.DomainEntity}Adapter.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Domain\TableSearchCriteria.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchCriteria.cs");
+        }
+        else
+        {
+            GenerateClass(engine, session, endpoint, $@"{project}\Domain\Table.ttinclude", $@"{folder}\{endpoint.DomainEntity}Entity.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Domain\QueryAdapter.ttinclude", $@"{folder}\{endpoint.DomainEntity}Adapter.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Domain\TableSearchCriteria.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchCriteria.cs");
+        }
+    }
+
+    public void GeneratePersistenceLayer(Engine engine, TextTemplatingSession session, ApiEndpoint endpoint, bool isTable, string project, string root)
+    {
+        var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, endpoint.DomainEntity);
+
+        if (isTable)
+        {
+            GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableConfiguration.ttinclude", $@"{folder}\{endpoint.DomainEntity}EntityConfiguration.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableSearch.ttinclude", $@"{folder}\{endpoint.DomainEntity}Search.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableSearchCriteriaValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchCriteriaValidator.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableService.ttinclude", $@"{folder}\{endpoint.DomainEntity}Service.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableStore.ttinclude", $@"{folder}\{endpoint.DomainEntity}Store.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}EntityValidator.cs");
+        }
+        else
+        {
+            GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableConfiguration.ttinclude", $@"{folder}\{endpoint.DomainEntity}EntityConfiguration.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Persistence\QuerySearch.ttinclude", $@"{folder}\{endpoint.DomainEntity}Search.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableSearchCriteriaValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchCriteriaValidator.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Persistence\QueryService.ttinclude", $@"{folder}\{endpoint.DomainEntity}Service.cs");
+        }
+    }
+
+    public void GenerateApiLayer(Engine engine, TextTemplatingSession session, ApiEndpoint endpoint, bool isTable, string project, string root)
+    {
+        var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, "-");
+
+        if (isTable)
+        {
+            GenerateClass(engine, session, endpoint, $@"{project}\Api\TableController.ttinclude", $@"{folder}\{endpoint.DomainEntity}Controller.cs");
+        }
+        else
+        {
+            GenerateClass(engine, session, endpoint, $@"{project}\Api\QueryController.ttinclude", $@"{folder}\{endpoint.DomainEntity}Controller.cs");
+        }
+    }
+
+    public void GenerateSdkLayer(Engine engine, TextTemplatingSession session, ApiEndpoint endpoint, bool isTable, string project, string root)
+    {
+        var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, "-");
+
+        if (isTable)
+        {
+            GenerateClass(engine, session, endpoint, $@"{project}\Sdk\TableClient.ttinclude", $@"{folder}\{endpoint.DomainEntity}Client.cs");
+        }
+        else
+        {
+            GenerateClass(engine, session, endpoint, $@"{project}\Sdk\QueryClient.ttinclude", $@"{folder}\{endpoint.DomainEntity}Client.cs");
+        }
+    }
+
+    public void GenerateClass(Engine engine, TextTemplatingSession session, ApiEndpoint endpoint, string input, string output)
+    {
+        if (endpoint != null) 
+        {
+            session["DatabaseSchema"] = endpoint.DatabaseSchema;
+            session["DatabaseTable"] = endpoint.DatabaseTable;
+            session["DatabasePrimaryKey"] = endpoint.DatabasePrimaryKey;
+
+            session["DomainToolkit"] = endpoint.DomainToolkit;
+            session["DomainToolset"] = endpoint.DomainToolset;
+            session["DomainEntity"] = endpoint.DomainEntity;
+        }
+
+        var sessionHost = (ITextTemplatingSessionHost) this.Host;
+        sessionHost.Session = session;
+
+        string templateFile = input;
+        string templateContent = File.ReadAllText(templateFile);
+                
+        string generatedContent = engine.ProcessTemplate(templateContent, Host);
+
+        File.WriteAllText(output, generatedContent);
+    }
+
+    public string CreateFolder(string folder)
+    {
+        if (!Directory.Exists(folder))
+            Directory.CreateDirectory(folder);
+        return folder;
+    }
+
     public string GeneratePath(string a, string b, string c, string d)
     {
         var path = a;
@@ -133,56 +183,6 @@
         if (d != "-")
             path += $@"\{d}";
          
-        GenerateFolder(path);
-
-        return path;
-    }
-
-    public void GenerateFolder(string folder)
-    {
-        if (!Directory.Exists(folder))
-            Directory.CreateDirectory(folder);
-    }
-
-    public void GenerateClass(TemplateSettings settings, ApiEndpoint endpoint, string input, string output)
-    {
-        string templateFile = this.Host.ResolvePath(input);
-        string templateContent = File.ReadAllText(templateFile);
-
-        TextTemplatingSession session = new TextTemplatingSession();
-        
-        session["Common"] = settings.CommonName;
-        session["Platform"] = settings.PlatformName;
-
-        if (endpoint != null) 
-        {
-            session["DatabaseSchema"] = endpoint.DatabaseSchema;
-            session["DatabaseTable"] = endpoint.DatabaseTable;
-            session["DatabasePrimaryKey"] = endpoint.DatabasePrimaryKey;
-
-            session["DomainToolkit"] = endpoint.DomainToolkit;
-            session["DomainToolset"] = endpoint.DomainToolset;
-            session["DomainEntity"] = endpoint.DomainEntity;
-        }
-        
-        var sessionHost = (ITextTemplatingSessionHost) this.Host;
-        sessionHost.Session = session;
-
-        Engine engine = new Engine();
-        string generatedContent = engine.ProcessTemplate(templateContent, this.Host);
-
-        File.WriteAllText(output, generatedContent);
-    }
-
-    void ProcessTemplate(string templateFileName, string outputFileName)
-    {
-        string templateDirectory = Path.GetDirectoryName(Host.TemplateFile);
-        string outputFilePath = Path.Combine(templateDirectory, outputFileName);  
-
-        string template = File.ReadAllText(Host.ResolvePath(templateFileName));
-        Engine engine = new Engine();
-        string output = engine.ProcessTemplate(template, Host);  
-
-        File.WriteAllText(outputFilePath, output);
+        return CreateFolder(path);
     }
 #>

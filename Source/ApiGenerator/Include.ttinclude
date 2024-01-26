@@ -15,7 +15,7 @@
 <#@ import namespace="System.Text.RegularExpressions" #>
 <#+
 
-private string SettingsFilePath = @".\CodeGenerator\Settings.json";
+private string SettingsFilePath = @".\ApiGenerator\Settings.json";
 
 public class TemplateSettings
 {
@@ -135,6 +135,12 @@ public int? GetColumnPrecision(string table, string column)
 public int? GetColumnScale(string table, string column)
 {
     return (int?)GetScalar($"select NUMERIC_SCALE from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = '{table}' and COLUMN_NAME = '{column}'");
+}
+
+public bool IsTable(string schemaName, string tableName)
+{
+    var query = $"select TABLE_TYPE from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA = '{schemaName}' and TABLE_NAME = '{tableName}'";
+    return GetScalar(query).ToString() == "BASE TABLE";
 }
 
 public class EntityColumnComparer : IComparer<DataColumn>

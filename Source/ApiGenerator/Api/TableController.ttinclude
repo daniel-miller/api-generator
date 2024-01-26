@@ -56,8 +56,9 @@ using Microsoft.AspNetCore.Mvc;
 using <#= Common #>.Contract;
 
 using <#= Platform #>.Contract;
-using <#= Platform #>.Domain;
-using <#= Platform #>.Persistence;
+using <#= Platform #>.Contract.<#= DomainToolkit #>;
+using <#= Platform #>.Domain.<#= DomainToolkit #>;
+using <#= Platform #>.Persistence.<#= DomainToolkit #>;
 
 namespace <#= Platform #>.Api.<#= DomainToolkit #>;
 
@@ -77,7 +78,7 @@ public class <#= DomainEntity #>Controller : ControllerBase
     [HttpPost(ApiEndpoints.<#= apiSpace #>.Create)]
     [ProducesResponseType(typeof(<#= DomainEntity #>GetResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationFailureResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Create([FromBody] <#= DomainEntity #>CreateRequest request, CancellationToken token)
+    public async Task<ActionResult<<#= DomainEntity #>GetResponse>> Create([FromBody] <#= DomainEntity #>CreateRequest request, CancellationToken token)
     {
         var identity = HttpContext.GetIdentity();
         var adapter = new <#= DomainEntity #>Adapter(identity);
@@ -110,7 +111,7 @@ public class <#= DomainEntity #>Controller : ControllerBase
     [Authorize(ApiEndpoints.<#= apiSpace #>.Fetch)]
     [HttpGet(ApiEndpoints.<#= apiSpace #>.Fetch)]
     [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>GetResponse>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Fetch([FromQuery] <#= DomainEntity #>SearchRequest request, CancellationToken token)
+    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>GetResponse>>> Fetch([FromQuery] <#= DomainEntity #>SearchRequest request, CancellationToken token)
     {
         var identity = HttpContext.GetIdentity();
         var adapter = new <#= DomainEntity #>Adapter(identity);
@@ -128,7 +129,7 @@ public class <#= DomainEntity #>Controller : ControllerBase
     [Authorize(ApiEndpoints.<#= apiSpace #>.Get)]
     [HttpGet(ApiEndpoints.<#= apiSpace #>.Get)]
     [ProducesResponseType(typeof(<#= DomainEntity #>GetResponse), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Get(<#= pkParameters #>, CancellationToken token)
+    public async Task<ActionResult<<#= DomainEntity #>GetResponse>> Get(<#= pkParameters #>, CancellationToken token)
     {
         var identity = HttpContext.GetIdentity();
         var adapter = new <#= DomainEntity #>Adapter(identity);
@@ -142,7 +143,7 @@ public class <#= DomainEntity #>Controller : ControllerBase
     [Authorize(ApiEndpoints.<#= apiSpace #>.Search)]
     [HttpGet(ApiEndpoints.<#= apiSpace #>.Search)]
     [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>SearchResponse>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Search([FromQuery] <#= DomainEntity #>SearchRequest request, CancellationToken token)
+    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>SearchResponse>>> Search([FromQuery] <#= DomainEntity #>SearchRequest request, CancellationToken token)
     {
         var identity = HttpContext.GetIdentity();
         var adapter = new <#= DomainEntity #>Adapter(identity);

@@ -6,10 +6,23 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="Microsoft.VisualStudio.TextTemplating" #>
+<#@ parameter type="System.String" name="Platform" #>
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #>
 using Microsoft.EntityFrameworkCore;
 
-namespace Festival.Persistence;
+<#
+var toolkits = GetEndpoints().Select(x => x.DomainToolkit).Distinct().OrderBy(x => x);
+
+foreach (var toolkit in toolkits)
+    WriteLine($"using {Platform}.Domain.{toolkit};");
+
+WriteLine("");
+
+foreach (var toolkit in toolkits)
+    WriteLine($"using {Platform}.Persistence.{toolkit};");
+#>
+
+namespace Shift.Persistence;
 
 public class TableDbContext : DbContext
 {

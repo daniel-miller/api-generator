@@ -7,6 +7,7 @@
 <#@ parameter type="System.String" name="Platform" #>
 <#@ parameter type="System.String" name="DatabaseSchema" #>
 <#@ parameter type="System.String" name="DatabaseTable" #>
+<#@ parameter type="System.String" name="DomainToolkit" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
     
@@ -37,9 +38,9 @@
 #>
 using Microsoft.EntityFrameworkCore;
 
-using <#= Platform #>.Domain;
+using <#= Platform #>.Domain.<#= DomainToolkit #>;
 
-namespace <#= Platform #>.Persistence;
+namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
 
 public class <#= DomainEntity #>Store
 {

@@ -1,7 +1,7 @@
 ﻿{
     "CommonName": "Common",
-    "DatabaseName": "M1_Local_Festival",
-    "EndpointTable": "dbo.TApiEndpoint",
+    "DatabaseName": "E03_Local_Shift",
+    "EndpointTable": "databases.TApiEndpoint",
     "OutputDirectory": "d:\\temp\\t4",
-    "PlatformName": "Festival"
+    "PlatformName": "Shift"
 }

@@ -53,8 +53,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using <#= Platform #>.Contract;
-using <#= Platform #>.Domain;
-using <#= Platform #>.Persistence;
+using <#= Platform #>.Contract.<#= DomainToolkit #>;
+using <#= Platform #>.Domain.<#= DomainToolkit #>;
+using <#= Platform #>.Persistence.<#= DomainToolkit #>;
 
 namespace <#= Platform #>.Api.<#= DomainToolkit #>;
 
@@ -73,7 +74,7 @@ public class <#= DomainEntity #>Controller : ControllerBase
     [Authorize(ApiEndpoints.<#= apiSpace #>.Fetch)]
     [HttpGet(ApiEndpoints.<#= apiSpace #>.Fetch)]
     [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>GetResponse>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Fetch([FromQuery] <#= DomainEntity #>SearchRequest request, CancellationToken token)
+    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>GetResponse>> Fetch([FromQuery] <#= DomainEntity #>SearchRequest request, CancellationToken token)
     {
         var identity = HttpContext.GetIdentity();
         var adapter = new <#= DomainEntity #>Adapter(identity);

@@ -8,6 +8,7 @@
 <#@ parameter type="System.String" name="DatabaseSchema" #>
 <#@ parameter type="System.String" name="DatabaseTable" #>
 <#@ parameter type="System.String" name="DatabasePrimaryKey" #>
+<#@ parameter type="System.String" name="DomainToolkit" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
 
@@ -22,9 +23,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using Festival.Domain;
+using <#= Platform #>.Domain.<#= DomainToolkit #>;
 
-namespace <#= Platform #>.Persistence;
+namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
 
 internal class <#= DomainEntity #>Configuration : IEntityTypeConfiguration<<#= DomainEntity #>Entity>
 {

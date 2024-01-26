@@ -9,6 +9,7 @@
 <#@ parameter type="System.String" name="DatabaseSchema" #>
 <#@ parameter type="System.String" name="DatabaseTable" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
+<#@ parameter type="System.String" name="DomainToolkit" #>
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
     
     var table = GetTable(DatabaseSchema, DatabaseTable);
@@ -18,9 +19,9 @@
 #>
 using <#= Common #>.Contract;
 
-using <#= Platform #>.Contract;
+using <#= Platform #>.Contract.<#= DomainToolkit #>;
 
-namespace <#= Platform #>.Domain;
+namespace <#= Platform #>.Domain.<#= DomainToolkit #>;
 
 public class <#= DomainEntity #>Adapter
 {
