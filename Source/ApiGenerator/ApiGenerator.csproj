@@ -51,6 +51,16 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </None>
+    <None Update="Legacy\Entity.txt">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Entity.tt</DependentUpon>
+    </None>
+    <None Update="Legacy\EntityConfiguration.txt">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>EntityConfiguration.tt</DependentUpon>
+    </None>
     <None Update="Generate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Generate.txt</LastGenOutput>
@@ -239,11 +249,11 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Include.txt</LastGenOutput>
     </None>
-    <None Update="Entity.tt">
+    <None Update="Legacy\Entity.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Entity.txt</LastGenOutput>
     </None>
-    <None Update="EntityConfiguration.tt">
+    <None Update="Legacy\EntityConfiguration.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityConfiguration.txt</LastGenOutput>
     </None>

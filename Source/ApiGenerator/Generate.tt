@@ -57,7 +57,7 @@
 
         if (isTable)
         {
-            GenerateClass(engine, session, endpoint, $@"{project}\Contract\SearchRequest.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchRequest.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Contract\Criteria.ttinclude", $@"{folder}\{endpoint.DomainEntity}Criteria.cs");
             GenerateClass(engine, session, endpoint, $@"{project}\Contract\SearchResponse.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchResponse.cs");
 
             GenerateClass(engine, session, endpoint, $@"{project}\Contract\CreateRequest.ttinclude", $@"{folder}\{endpoint.DomainEntity}CreateRequest.cs");
@@ -66,7 +66,7 @@
         }
         else
         {
-            GenerateClass(engine, session, endpoint, $@"{project}\Contract\SearchRequest.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchRequest.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Contract\Criteria.ttinclude", $@"{folder}\{endpoint.DomainEntity}Criteria.cs");
             GenerateClass(engine, session, endpoint, $@"{project}\Contract\GetResponse.ttinclude", $@"{folder}\{endpoint.DomainEntity}GetResponse.cs");
         }
     }
@@ -79,13 +79,11 @@
         {
             GenerateClass(engine, session, endpoint, $@"{project}\Domain\Table.ttinclude", $@"{folder}\{endpoint.DomainEntity}Entity.cs");
             GenerateClass(engine, session, endpoint, $@"{project}\Domain\TableAdapter.ttinclude", $@"{folder}\{endpoint.DomainEntity}Adapter.cs");
-            GenerateClass(engine, session, endpoint, $@"{project}\Domain\TableSearchCriteria.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchCriteria.cs");
         }
         else
         {
             GenerateClass(engine, session, endpoint, $@"{project}\Domain\Table.ttinclude", $@"{folder}\{endpoint.DomainEntity}Entity.cs");
             GenerateClass(engine, session, endpoint, $@"{project}\Domain\QueryAdapter.ttinclude", $@"{folder}\{endpoint.DomainEntity}Adapter.cs");
-            GenerateClass(engine, session, endpoint, $@"{project}\Domain\TableSearchCriteria.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchCriteria.cs");
         }
     }
 
@@ -97,7 +95,7 @@
         {
             GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableConfiguration.ttinclude", $@"{folder}\{endpoint.DomainEntity}EntityConfiguration.cs");
             GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableSearch.ttinclude", $@"{folder}\{endpoint.DomainEntity}Search.cs");
-            GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableSearchCriteriaValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchCriteriaValidator.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableCriteriaValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}CriteriaValidator.cs");
             GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableService.ttinclude", $@"{folder}\{endpoint.DomainEntity}Service.cs");
             GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableStore.ttinclude", $@"{folder}\{endpoint.DomainEntity}Store.cs");
             GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}EntityValidator.cs");
@@ -106,7 +104,7 @@
         {
             GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableConfiguration.ttinclude", $@"{folder}\{endpoint.DomainEntity}EntityConfiguration.cs");
             GenerateClass(engine, session, endpoint, $@"{project}\Persistence\QuerySearch.ttinclude", $@"{folder}\{endpoint.DomainEntity}Search.cs");
-            GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableSearchCriteriaValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}SearchCriteriaValidator.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableCriteriaValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}CriteriaValidator.cs");
             GenerateClass(engine, session, endpoint, $@"{project}\Persistence\QueryService.ttinclude", $@"{folder}\{endpoint.DomainEntity}Service.cs");
         }
     }

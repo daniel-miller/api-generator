@@ -14,10 +14,24 @@
     
     var table = GetTable(DatabaseSchema, DatabaseTable);
 
-    var pkProperties = "";
+    var fields = new List<DataColumn>();
+
     for (int i = 0; i < table.PrimaryKey.Length; i++)
+        fields.Add(table.PrimaryKey[i]);
+
+    foreach (DataColumn column in table.Columns)
     {
-        var column = table.PrimaryKey[i];
+        if (column.ColumnName == "OrganizationIdentifier" || column.ColumnName == "OriginOrganization")
+            if (!fields.Any(x => x.ColumnName == column.ColumnName))
+                fields.Add(column);
+    }
+        
+    fields.Sort(new EntityColumnComparer());
+
+    var pkProperties = "";
+    for (int i = 0; i < fields.Count; i++)
+    {
+        var column = fields[i];
         var typeName = TypeNameOrAlias(column.DataType);
         var datatype = typeName;
     
@@ -26,10 +40,9 @@
 
         pkProperties += "        public " + datatype + " " + column.ColumnName + " { get; set; }";
 
-        if (i != table.PrimaryKey.Length - 1)
+        if (i != fields.Count() - 1)
             pkProperties += "\r\n";
     }
-
 #>
 using System;
 
@@ -37,7 +50,7 @@ using <#= Common #>.Contract;
 
 namespace <#= Platform #>.Contract.<#= DomainToolkit #>
 {
-    public class <#= DomainEntity #>SearchRequest : PagedRequest
+    public partial class <#= DomainEntity #>Criteria : Criteria
     {
 <#= pkProperties #>
     }

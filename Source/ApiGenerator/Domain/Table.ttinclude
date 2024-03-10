@@ -38,7 +38,7 @@ for (int i = 0; i < columns.Count; i++)
     Write("    public " + datatype + " " + column.ColumnName + " { get; set; }");
     
     if (column.DataType == typeof(string) && !column.AllowDBNull)
-        Write(" = default!;");    
+        Write(" = null!;");
     
     WriteLine("");
     

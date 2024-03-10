@@ -50,6 +50,9 @@
     if (DomainEntity != "-")
         apiSpace += "." + DomainEntity;
 #>
+using System;
+using System.Collections.Generic;
+
 using <#= Common #>.Sdk;
 
 using <#= Platform #>.Contract;
@@ -61,7 +64,7 @@ namespace <#= Platform #>.Sdk.<#= DomainToolkit #>
     {
         public <#= DomainEntity #>Client(SdkConfiguration configuration) : base(configuration) { }
 
-        public IEnumerable<<#= DomainEntity #>GetResponse> Fetch(<#= DomainEntity #>SearchRequest request)
-            => GetMany<<#= DomainEntity #>GetResponse>(ApiEndpoints.<#= apiSpace #>.Collection, ConvertToDictionary(request));
+        public IEnumerable<<#= DomainEntity #>GetResponse> List(<#= DomainEntity #>Criteria request)
+            => GetList<<#= DomainEntity #>GetResponse>(ApiEndpoints.<#= apiSpace #>.Collection, ConvertToDictionary(request));
     }   
 }

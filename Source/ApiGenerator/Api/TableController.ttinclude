@@ -74,23 +74,69 @@ public class <#= DomainEntity #>Controller : ControllerBase
         _<#= entity #>Service = <#= entity #>Service;
     }
 
+    [Authorize(ApiEndpoints.<#= apiSpace #>.Item)]
+    [HttpGet(ApiEndpoints.<#= apiSpace #>.Item)]
+    [ProducesResponseType(typeof(<#= DomainEntity #>GetResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<<#= DomainEntity #>GetResponse>> GetItem(<#= pkParameters #>, CancellationToken token)
+    {
+        var results = await _<#= entity #>Service.GetAsync(<#= pkProperties #>, token);
+
+        return Ok(results);
+    }
+
+    [Authorize(ApiEndpoints.<#= apiSpace #>.List)]
+    [HttpGet(ApiEndpoints.<#= apiSpace #>.List)]
+    [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>GetResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>GetResponse>>> GetList([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
+    {
+        var adapter = new <#= DomainEntity #>Adapter();
+        
+        var results = await _<#= entity #>Service.SearchAsync(criteria, token);
+
+        var count = await _<#= entity #>Service.CountAsync(criteria, token);
+
+        Response.AddPagination(criteria.Page, criteria.Take, results.Count(), count);
+
+        var response = adapter.ToListResponse(results);
+
+        return Ok(response);
+    }
+
+    [Authorize(ApiEndpoints.<#= apiSpace #>.Search)]
+    [HttpGet(ApiEndpoints.<#= apiSpace #>.Search)]
+    [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>SearchResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>SearchResponse>>> Search([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
+    {
+        var adapter = new <#= DomainEntity #>Adapter();
+        
+        var results = await _<#= entity #>Service.SearchAsync(criteria, token);
+
+        var count = await _<#= entity #>Service.CountAsync(criteria, token);
+
+        Response.AddPagination(criteria.Page, criteria.Take, results.Count(), count);
+
+        var response = adapter.ToSearchResponse(results);
+
+        return Ok(response);
+    }
+
     [Authorize(ApiEndpoints.<#= apiSpace #>.Create)]
     [HttpPost(ApiEndpoints.<#= apiSpace #>.Create)]
     [ProducesResponseType(typeof(<#= DomainEntity #>GetResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationFailureResponse), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<<#= DomainEntity #>GetResponse>> Create([FromBody] <#= DomainEntity #>CreateRequest request, CancellationToken token)
     {
-        var identity = HttpContext.GetIdentity();
-        var adapter = new <#= DomainEntity #>Adapter(identity);
+        var adapter = new <#= DomainEntity #>Adapter();
 
         var entity = adapter.ToEntity(request);
+        
         var created = await _<#= entity #>Service.CreateAsync(entity, token);
+
         if (!created)
-        {
-            return BadRequest($"Duplicate not permitted. Entity already exists: <#= pkValuesForCreate #>. You cannot insert a new entity with the same primary key.");
-        }
+            return BadRequest($"Duplicate not permitted: <#= pkValuesForCreate #>. You cannot insert a duplicate entity with the same primary key.");
 
         var response = adapter.ToGetResponse(entity);
+
         return CreatedAtAction(nameof(Create), response);
     }
 
@@ -101,61 +147,11 @@ public class <#= DomainEntity #>Controller : ControllerBase
     public async Task<IActionResult> Delete(<#= pkParameters #>, CancellationToken token)
     {
         var deleted = await _<#= entity #>Service.DeleteAsync(<#= pkProperties #>, token);
+        
         if (!deleted)
-        {
             return NotFound();
-        }
+        
         return Ok();
-    }
-
-    [Authorize(ApiEndpoints.<#= apiSpace #>.Fetch)]
-    [HttpGet(ApiEndpoints.<#= apiSpace #>.Fetch)]
-    [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>GetResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>GetResponse>>> Fetch([FromQuery] <#= DomainEntity #>SearchRequest request, CancellationToken token)
-    {
-        var identity = HttpContext.GetIdentity();
-        var adapter = new <#= DomainEntity #>Adapter(identity);
-
-        var criteria = adapter.ToCriteria(request);
-        var results = await _<#= entity #>Service.SearchAsync(criteria, token);
-        var count = await _<#= entity #>Service.CountAsync(criteria, token);
-
-        Response.AddPagination(request.Page, request.Take, results.Count(), count);
-
-        var response = adapter.ToFetchResponse(results);
-        return Ok(response);
-    }
-
-    [Authorize(ApiEndpoints.<#= apiSpace #>.Get)]
-    [HttpGet(ApiEndpoints.<#= apiSpace #>.Get)]
-    [ProducesResponseType(typeof(<#= DomainEntity #>GetResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult<<#= DomainEntity #>GetResponse>> Get(<#= pkParameters #>, CancellationToken token)
-    {
-        var identity = HttpContext.GetIdentity();
-        var adapter = new <#= DomainEntity #>Adapter(identity);
-
-        var result = await _<#= entity #>Service.GetAsync(<#= pkProperties #>, token);
-
-        var response = result;
-        return Ok(response);
-    }
-
-    [Authorize(ApiEndpoints.<#= apiSpace #>.Search)]
-    [HttpGet(ApiEndpoints.<#= apiSpace #>.Search)]
-    [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>SearchResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>SearchResponse>>> Search([FromQuery] <#= DomainEntity #>SearchRequest request, CancellationToken token)
-    {
-        var identity = HttpContext.GetIdentity();
-        var adapter = new <#= DomainEntity #>Adapter(identity);
-
-        var criteria = adapter.ToCriteria(request);
-        var results = await _<#= entity #>Service.SearchAsync(criteria, token);
-        var count = await _<#= entity #>Service.CountAsync(criteria, token);
-
-        Response.AddPagination(request.Page, request.Take, results.Count(), count);
-
-        var response = adapter.ToSearchResponse(results);
-        return Ok(response);
     }
 
     [Authorize(ApiEndpoints.<#= apiSpace #>.Update)]
@@ -165,17 +161,19 @@ public class <#= DomainEntity #>Controller : ControllerBase
     [ProducesResponseType(typeof(ValidationFailureResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Update(<#= pkParameters #>, [FromBody] <#= DomainEntity #>UpdateRequest request, CancellationToken token)
     {
-        var identity = HttpContext.GetIdentity();
-        var adapter = new <#= DomainEntity #>Adapter(identity);
-
+        var adapter = new <#= DomainEntity #>Adapter();
+        
         var entity = await _<#= entity #>Service.GetAsync(<#= pkProperties #>, token);
+
         if (entity is null)
-            return NotFound($"Entity not found: <#= pkValuesForUpdate #>. You cannot update an entity that is not in the system.");
+            return NotFound($"Entity not found: <#= pkValuesForUpdate #>. You cannot update an entity that is not in the database.");
 
         adapter.Copy(request, entity);
+
         var updated = await _<#= entity #>Service.UpdateAsync(entity, token);
+
         if (!updated)
-            return NotFound($"Entity not updated:");
+            return NotFound();
         
         return Ok();
     }

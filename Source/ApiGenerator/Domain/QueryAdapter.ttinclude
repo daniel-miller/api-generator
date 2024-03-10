@@ -25,13 +25,6 @@ namespace <#= Platform #>.Domain.<#= DomainToolkit #>;
 
 public class <#= DomainEntity #>Adapter
 {
-    private readonly Identity _identity;
-
-    public <#= DomainEntity #>Adapter(Identity identity)
-    {
-        _identity = identity;
-    }
-
     public <#= DomainEntity #>SearchCriteria ToCriteria(<#= DomainEntity #>SearchRequest request)
     {
         var criteria = new <#= DomainEntity #>SearchCriteria

@@ -50,6 +50,9 @@
     if (DomainEntity != "-")
         apiSpace += "." + DomainEntity;
 #>
+using System;
+using System.Collections.Generic;
+
 using <#= Common #>.Sdk;
 
 using <#= Platform #>.Contract;
@@ -68,13 +71,13 @@ namespace <#= Platform #>.Sdk.<#= DomainToolkit #>
             => Delete(ApiEndpoints.<#= apiSpace #>.Collection, <#= pkProperties #>);
 
         public <#= DomainEntity #>GetResponse Get(<#= pkParameters #>)
-            => GetOne<<#= DomainEntity #>GetResponse>(ApiEndpoints.<#= apiSpace #>.Collection, <#= pkProperties #>);
+            => GetItem<<#= DomainEntity #>GetResponse>(ApiEndpoints.<#= apiSpace #>.Collection, <#= pkProperties #>);
 
-        public IEnumerable<<#= DomainEntity #>GetResponse> Fetch(<#= DomainEntity #>SearchRequest request)
-            => GetMany<<#= DomainEntity #>GetResponse>(ApiEndpoints.<#= apiSpace #>.Collection, ConvertToDictionary(request));
+        public IEnumerable<<#= DomainEntity #>GetResponse> List(<#= DomainEntity #>Criteria request)
+            => GetList<<#= DomainEntity #>GetResponse>(ApiEndpoints.<#= apiSpace #>.Collection, ConvertToDictionary(request));
 
-        public IEnumerable<<#= DomainEntity #>SearchResponse> Search(<#= DomainEntity #>SearchRequest request)
-            => GetMany<<#= DomainEntity #>SearchResponse>(ApiEndpoints.<#= apiSpace #>.Search, ConvertToDictionary(request));
+        public IEnumerable<<#= DomainEntity #>SearchResponse> Search(<#= DomainEntity #>Criteria request)
+            => GetList<<#= DomainEntity #>SearchResponse>(ApiEndpoints.<#= apiSpace #>.Search, ConvertToDictionary(request));
 
         public void Update(<#= DomainEntity #>UpdateRequest request)
             => Post(ApiEndpoints.<#= apiSpace #>.Collection, request);

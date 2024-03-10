@@ -33,6 +33,7 @@
 #>
 using Microsoft.EntityFrameworkCore;
 
+using <#= Platform #>.Contract.<#= DomainToolkit #>;
 using <#= Platform #>.Domain.<#= DomainToolkit #>;
 
 namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
@@ -46,13 +47,13 @@ public class <#= DomainEntity #>Search
         _db = db;
     }
 
-    internal async Task<int> CountAsync(<#= DomainEntity #>SearchCriteria criteria, CancellationToken token)
+    internal async Task<int> CountAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
         return await BuildQuery(criteria)
             .CountAsync(token);
     }
 
-    internal async Task<IEnumerable<<#= DomainEntity #>Entity>> SearchAsync(<#= DomainEntity #>SearchCriteria criteria, CancellationToken token)
+    internal async Task<IEnumerable<<#= DomainEntity #>Entity>> SearchAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
         return await BuildQuery(criteria)
             .Skip((criteria.Page - 1) * criteria.Rows)
@@ -60,7 +61,7 @@ public class <#= DomainEntity #>Search
             .ToListAsync(token);
     }
 
-    private IQueryable<<#= DomainEntity #>Entity> BuildQuery(<#= DomainEntity #>SearchCriteria criteria)
+    private IQueryable<<#= DomainEntity #>Entity> BuildQuery(<#= DomainEntity #>Criteria criteria)
     {
         var query = _db.<#= DomainEntityPlural #>.AsNoTracking().AsQueryable();
 

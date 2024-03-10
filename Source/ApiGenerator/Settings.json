@@ -1,7 +1,7 @@
 ﻿{
     "CommonName": "Common",
-    "DatabaseName": "E03_Local_Shift",
+    "DatabaseName": "DATABASE_NAME",
     "EndpointTable": "databases.TApiEndpoint",
-    "OutputDirectory": "d:\\temp\\t4",
-    "PlatformName": "Shift"
+    "OutputDirectory": "C:\\TEMP",
+    "PlatformName": "PLATFORM_NAME"
 }

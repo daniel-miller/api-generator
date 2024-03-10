@@ -22,7 +22,7 @@ using System;
 
 namespace <#= Platform #>.Contract.<#= DomainToolkit #>
 {
-    public class <#= DomainEntity #>UpdateRequest
+    public partial class <#= DomainEntity #>UpdateRequest
     {
 <#
 string lasttype = null;

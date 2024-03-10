@@ -33,7 +33,12 @@ for (int i = 0; i < primaryKey.Length; i++)
     if (datatype != "string")
         datatype += "?";
     
-    WriteLine("    public " + datatype + " " + column.ColumnName + " { get; set; }");
+    Write("    public " + datatype + " " + column.ColumnName + " { get; set; }");
+
+    if (column.DataType == typeof(string) && !column.AllowDBNull)
+        Write(" = null!;");
+    
+    WriteLine("");
 }
 #>
 }

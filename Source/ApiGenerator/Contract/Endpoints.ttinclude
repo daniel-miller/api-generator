@@ -48,8 +48,8 @@ foreach (var toolkit in toolkits)
 
             if (isTable)
             {
-                all.Add($"{toolkit}.{toolset}.{entity}.Get");
-                all.Add($"{toolkit}.{toolset}.{entity}.Fetch");
+                all.Add($"{toolkit}.{toolset}.{entity}.Item");
+                all.Add($"{toolkit}.{toolset}.{entity}.List");
                 all.Add($"{toolkit}.{toolset}.{entity}.Search");
             
                 all.Add($"{toolkit}.{toolset}.{entity}.Create");
@@ -58,7 +58,7 @@ foreach (var toolkit in toolkits)
             }
             else
             {
-                all.Add($"{toolkit}.{toolset}.{entity}.Fetch");
+                all.Add($"{toolkit}.{toolset}.{entity}.List");
             }
 
             if (isTable)
@@ -66,17 +66,18 @@ foreach (var toolkit in toolkits)
 
                 public static class <#= entity #>
                 {
-                    public const string Collection = "<#= collection #>";
-                    private const string item = "<#= item #>";
-                    private const string search = "<#= search #>";
+                    private const string _item = "<#= item #>";
+                    private const string _search = "<#= search #>";
 
-                    public const string Get = Collection + item;      // get one existing entity
-                    public const string Fetch = Collection;           // get all entities that match criteria
-                    public const string Search = Collection + search; // get search results that match criteria
+                    public const string Collection = "<#= collection #>";
+
+                    public const string Item = Collection + _item;     // get one existing entity
+                    public const string List = Collection;             // get all entities that match criteria
+                    public const string Search = Collection + _search; // get search results that match criteria
                 
-                    public const string Create = Collection;          // create one new entity
-                    public const string Update = Collection + item;   // update one existing entity
-                    public const string Delete = Collection + item;   // delete one existing entity
+                    public const string Create = Collection;           // create one new entity
+                    public const string Update = Collection + _item;   // update one existing entity
+                    public const string Delete = Collection + _item;   // delete one existing entity
                 }
         <# 
             } else { #>
@@ -85,7 +86,7 @@ foreach (var toolkit in toolkits)
                 {
                     public const string Collection = "<#= collection #>";
 
-                    public const string Fetch = Collection;           // get all entities that match criteria
+                    public const string List = Collection;             // get all entities that match criteria
                 }
         <#
             } } 

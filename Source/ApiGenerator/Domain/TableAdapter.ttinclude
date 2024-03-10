@@ -25,36 +25,9 @@ namespace <#= Platform #>.Domain.<#= DomainToolkit #>;
 
 public class <#= DomainEntity #>Adapter
 {
-    private readonly Identity _identity;
-
-    public <#= DomainEntity #>Adapter(Identity identity)
-    {
-        _identity = identity;
-    }
-
     public void Copy(<#= DomainEntity #>UpdateRequest request, <#= DomainEntity #>Entity entity)
     {
         
-    }
-
-    public <#= DomainEntity #>SearchCriteria ToCriteria(<#= DomainEntity #>SearchRequest request)
-    {
-        var criteria = new <#= DomainEntity #>SearchCriteria
-        {
-            Identity = _identity,
-            Page = request.Page,
-            Take = request.Take,
-<#
-for (int i = 0; i < primaryKey.Length; i++) 
-{        
-    Write("            " + primaryKey[i].ColumnName + " = request." + primaryKey[i].ColumnName);
-    if (i < primaryKey.Length - 1)
-        WriteLine(",");
-}
-#>
-
-        };
-        return criteria;
     }
 
     public <#= DomainEntity #>Entity ToEntity(<#= DomainEntity #>CreateRequest request)
@@ -75,7 +48,7 @@ for (int i = 0; i < primaryKey.Length; i++)
         return entity;
     }
 
-    public IEnumerable<<#= DomainEntity #>GetResponse> ToFetchResponse(IEnumerable<<#= DomainEntity #>Entity> entities)
+    public IEnumerable<<#= DomainEntity #>GetResponse> ToListResponse(IEnumerable<<#= DomainEntity #>Entity> entities)
     {
         return entities.Select(x => ToGetResponse(x));
     }

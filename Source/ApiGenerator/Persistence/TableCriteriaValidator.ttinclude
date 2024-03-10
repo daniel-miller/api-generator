@@ -14,13 +14,13 @@
 #>
 using FluentValidation;
 
-using <#= Platform #>.Domain.<#= DomainToolkit #>;
+using <#= Platform #>.Contract.<#= DomainToolkit #>;
 
 namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
 
-public class <#= DomainEntity #>SearchCriteriaValidator : AbstractValidator<<#= DomainEntity #>SearchCriteria>
+public class <#= DomainEntity #>CriteriaValidator : AbstractValidator<<#= DomainEntity #>Criteria>
 {
-    public <#= DomainEntity #>SearchCriteriaValidator()
+    public <#= DomainEntity #>CriteriaValidator()
     {
         
     }

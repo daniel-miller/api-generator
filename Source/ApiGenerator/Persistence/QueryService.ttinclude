@@ -37,33 +37,34 @@
 #>
 using FluentValidation;
 
+using <#= Platform #>.Contract.<#= DomainToolkit #>;
 using <#= Platform #>.Domain.<#= DomainToolkit #>;
 
 namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
 
 public interface I<#= DomainEntity #>Service
 {
-    Task<int> CountAsync(<#= DomainEntity #>SearchCriteria criteria, CancellationToken token);
-    Task<IEnumerable<<#= DomainEntity #>Entity>> SearchAsync(<#= DomainEntity #>SearchCriteria criteria, CancellationToken token);
+    Task<int> CountAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token);
+    Task<IEnumerable<<#= DomainEntity #>Entity>> SearchAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token);
 }
 
 public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
 {
     private readonly <#= DomainEntity #>Search _search;
-    private readonly IValidator<<#= DomainEntity #>SearchCriteria> _criteriaValidator;
+    private readonly IValidator<<#= DomainEntity #>Criteria> _criteriaValidator;
 
-    public <#= DomainEntity #>Service(<#= DomainEntity #>Search search, IValidator<<#= DomainEntity #>SearchCriteria> criteriaValidator)
+    public <#= DomainEntity #>Service(<#= DomainEntity #>Search search, IValidator<<#= DomainEntity #>Criteria> criteriaValidator)
     {
         _search = search;
         _criteriaValidator = criteriaValidator;
     }
 
-    public async Task<int> CountAsync(<#= DomainEntity #>SearchCriteria criteria, CancellationToken token)
+    public async Task<int> CountAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
         return await _search.CountAsync(criteria, token);
     }
 
-    public async Task<IEnumerable<<#= DomainEntity #>Entity>> SearchAsync(<#= DomainEntity #>SearchCriteria criteria, CancellationToken token)
+    public async Task<IEnumerable<<#= DomainEntity #>Entity>> SearchAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
         await _criteriaValidator.ValidateAndThrowAsync(criteria, token);
 

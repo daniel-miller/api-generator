@@ -29,7 +29,7 @@ using System;
 
 namespace <#= Platform #>.Contract.<#= DomainToolkit #>
 {
-    public class <#= DomainEntity #>SearchResponse
+    public partial class <#= DomainEntity #>SearchResponse
     {
 <#= pkProperties #>
     }

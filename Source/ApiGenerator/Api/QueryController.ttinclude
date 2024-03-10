@@ -71,21 +71,21 @@ public class <#= DomainEntity #>Controller : ControllerBase
         _<#= entity #>Service = <#= entity #>Service;
     }
 
-    [Authorize(ApiEndpoints.<#= apiSpace #>.Fetch)]
-    [HttpGet(ApiEndpoints.<#= apiSpace #>.Fetch)]
+    [Authorize(ApiEndpoints.<#= apiSpace #>.List)]
+    [HttpGet(ApiEndpoints.<#= apiSpace #>.List)]
     [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>GetResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>GetResponse>> Fetch([FromQuery] <#= DomainEntity #>SearchRequest request, CancellationToken token)
+    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>GetResponse>> GetList([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
-        var identity = HttpContext.GetIdentity();
-        var adapter = new <#= DomainEntity #>Adapter(identity);
-
-        var criteria = adapter.ToCriteria(request);
+        var adapter = new <#= DomainEntity #>Adapter();
+        
         var results = await _<#= entity #>Service.SearchAsync(criteria, token);
+        
         var count = await _<#= entity #>Service.CountAsync(criteria, token);
 
-        Response.AddPagination(request.Page, request.Take, results.Count(), count);
+        Response.AddPagination(criteria.Page, criteria.Take, results.Count(), count);
 
-        var response = adapter.ToFetchResponse(results);
+        var response = adapter.ToListResponse(results);
+
         return Ok(response);
     }
 }
