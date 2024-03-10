@@ -53,7 +53,8 @@ I use this query to identify database tables for which there are no specificatio
 
 ```
 select * from INFORMATION_SCHEMA.TABLES as t where t.TABLE_TYPE = 'Base Table' and not exists 
-(select * from databases.TApiEndpoint as e where TABLE_SCHEMA = e.DatabaseSchema and t.TABLE_NAME = e.DatabaseTable)
+(select * from databases.TApiEndpoint as e
+ where TABLE_SCHEMA = e.DatabaseSchema and t.TABLE_NAME = e.DatabaseTable)
 ```
 
 ### Dead-Ends
@@ -62,5 +63,6 @@ I use this query to identify API endpoint specifications for which there is no c
 
 ```
 select * from databases.TApiEndpoint as e where not exists 
-(select * from INFORMATION_SCHEMA.TABLES as t where TABLE_SCHEMA = e.DatabaseSchema and t.TABLE_NAME = e.DatabaseTable)
+(select * from INFORMATION_SCHEMA.TABLES as t
+ where TABLE_SCHEMA = e.DatabaseSchema and t.TABLE_NAME = e.DatabaseTable)
 ```
