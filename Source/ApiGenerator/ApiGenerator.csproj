@@ -75,6 +75,15 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Include.ttinclude</DependentUpon>
     </None>
+    <None Update="Persistence\QueryDbContext.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>QueryDbContext.txt</LastGenOutput>
+    </None>
+    <None Update="Persistence\QueryDbContext.txt">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>QueryDbContext.tt</DependentUpon>
+    </None>
     <None Update="Persistence\TableDbContext.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>TableDbContext.txt</LastGenOutput>

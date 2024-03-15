@@ -56,8 +56,8 @@ public class <#= DomainEntity #>Search
     internal async Task<IEnumerable<<#= DomainEntity #>Entity>> SearchAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
         return await BuildQuery(criteria)
-            .Skip((criteria.Page - 1) * criteria.Rows)
-            .Take(criteria.Rows)
+            .Skip((criteria.Page - 1) * criteria.Take)
+            .Take(criteria.Take)
             .ToListAsync(token);
     }
 

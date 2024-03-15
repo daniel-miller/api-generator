@@ -74,7 +74,7 @@ public class <#= DomainEntity #>Controller : ControllerBase
     [Authorize(ApiEndpoints.<#= apiSpace #>.List)]
     [HttpGet(ApiEndpoints.<#= apiSpace #>.List)]
     [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>GetResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>GetResponse>> GetList([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
+    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>GetResponse>>> GetList([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
         var adapter = new <#= DomainEntity #>Adapter();
         

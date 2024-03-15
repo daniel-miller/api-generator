@@ -14,7 +14,8 @@
     var output = settings.OutputDirectory;
     var platform = settings.PlatformName;
 
-    var endpoints = GetEndpoints(); // .Where(x => x.DatabaseTable == "Standard");
+    // var endpoints = GetEndpoints();
+    var endpoints = GetEndpoints().Where(x => x.DatabaseTable == "QOrganization");
     
     TextTemplatingSession session = new TextTemplatingSession();
     session["Common"] = settings.CommonName;
@@ -25,7 +26,7 @@
     var project = Host.ResolveAssemblyReference("$(ProjectDir)");
     var root = CreateFolder($@"{output}\{platform}.Contract");
 
-    GenerateClass(engine, session, null, $@"{project}\Contract\Endpoints.ttinclude", $@"{root}\ApiEndpoints.cs");
+    GenerateClass(engine, session, null, $@"{project}\Contract\Endpoints.ttinclude", $@"{root}\Foundations\ApiEndpoints.cs");
 
     foreach (var endpoint in endpoints)
     {

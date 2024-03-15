@@ -25,27 +25,7 @@ namespace <#= Platform #>.Domain.<#= DomainToolkit #>;
 
 public class <#= DomainEntity #>Adapter
 {
-    public <#= DomainEntity #>SearchCriteria ToCriteria(<#= DomainEntity #>SearchRequest request)
-    {
-        var criteria = new <#= DomainEntity #>SearchCriteria
-        {
-            Identity = _identity,
-            Page = request.Page,
-            Rows = request.Take,
-<#
-for (int i = 0; i < primaryKey.Length; i++) 
-{        
-    Write("            " + primaryKey[i].ColumnName + " = request." + primaryKey[i].ColumnName);
-    if (i < primaryKey.Length - 1)
-        WriteLine(",");
-}
-#>
-
-        };
-        return criteria;
-    }
-
-    public IEnumerable<<#= DomainEntity #>GetResponse> ToFetchResponse(IEnumerable<<#= DomainEntity #>Entity> entities)
+    public IEnumerable<<#= DomainEntity #>GetResponse> ToListResponse(IEnumerable<<#= DomainEntity #>Entity> entities)
     {
         return entities.Select(x => ToGetResponse(x));
     }

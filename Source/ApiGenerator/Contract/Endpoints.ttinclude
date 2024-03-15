@@ -16,7 +16,7 @@
 #>
 namespace <#= Platform #>.Contract
 {
-    public static class ApiEndpoints
+    public static partial class ApiEndpoints
     { <# 
 foreach (var toolkit in toolkits) 
 { 
@@ -26,12 +26,12 @@ foreach (var toolkit in toolkits)
         .Distinct().OrderBy(x => x).ToList();
 #>
 
-        public static class <#= toolkit #>
+        public static partial class <#= toolkit #>
         { <#
     foreach (var toolset in toolsets) 
     { #>
 
-            public static class <#= toolset #>
+            public static partial class <#= toolset #>
             { <#
         var entities = endpoints.Where(x => x.DomainToolkit == toolkit && x.DomainToolset == toolset)
             .Select(x => x.DomainEntity)
@@ -64,7 +64,7 @@ foreach (var toolkit in toolkits)
             if (isTable)
             { #>
 
-                public static class <#= entity #>
+                public static partial class <#= entity #>
                 {
                     private const string _item = "<#= item #>";
                     private const string _search = "<#= search #>";
@@ -82,7 +82,7 @@ foreach (var toolkit in toolkits)
         <# 
             } else { #>
 
-                public static class <#= entity #>
+                public static partial class <#= entity #>
                 {
                     public const string Collection = "<#= collection #>";
 

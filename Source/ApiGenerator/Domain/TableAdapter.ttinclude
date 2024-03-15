@@ -17,8 +17,6 @@
     var primaryKey = table.PrimaryKey;
 
 #>
-using <#= Common #>.Contract;
-
 using <#= Platform #>.Contract.<#= DomainToolkit #>;
 
 namespace <#= Platform #>.Domain.<#= DomainToolkit #>;
@@ -50,7 +48,7 @@ public class <#= DomainEntity #>Adapter
 
     public IEnumerable<<#= DomainEntity #>GetResponse> ToListResponse(IEnumerable<<#= DomainEntity #>Entity> entities)
     {
-        return entities.Select(x => ToGetResponse(x));
+        return entities.Select(ToGetResponse);
     }
 
     public <#= DomainEntity #>GetResponse ToGetResponse(<#= DomainEntity #>Entity entity)
@@ -72,7 +70,7 @@ for (int i = 0; i < columns.Count; i++)
 
     public IEnumerable<<#= DomainEntity #>SearchResponse> ToSearchResponse(IEnumerable<<#= DomainEntity #>Entity> entities)
     {
-        return entities.Select(x => ToSearchResponse(x));
+        return entities.Select(ToSearchResponse);
     }
 
     public <#= DomainEntity #>SearchResponse ToSearchResponse(<#= DomainEntity #>Entity entity)
@@ -84,7 +82,8 @@ for (int i = 0; i < primaryKey.Length; i++)
 {        
     Write("            " + primaryKey[i].ColumnName + " = entity." + primaryKey[i].ColumnName);
     if (i < primaryKey.Length - 1)
-        WriteLine(",");
+        Write(",");
+    WriteLine("");
 }
 #>
         };

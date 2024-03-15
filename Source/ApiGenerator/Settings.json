@@ -2,6 +2,6 @@
     "CommonName": "Common",
     "DatabaseName": "DATABASE_NAME",
     "EndpointTable": "databases.TApiEndpoint",
-    "OutputDirectory": "C:\\TEMP",
+    "OutputDirectory": "D:\\TEMP",
     "PlatformName": "PLATFORM_NAME"
 }

@@ -6,8 +6,8 @@
 <#@ import namespace="System.Collections.Generic" #>
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
     
-    var DatabaseSchema = "messages";
-    var DatabaseTable = "VClick";
+    var DatabaseSchema = "contacts";
+    var DatabaseTable = "TPersonSecret";
     var DomainEntity = DatabaseTable;
 
     var table = GetTable(DatabaseSchema, DatabaseTable);

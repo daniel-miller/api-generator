@@ -6,20 +6,22 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="Microsoft.VisualStudio.TextTemplating" #>
-<#@ parameter type="System.String" name="Platform" #>
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #>
 using Microsoft.EntityFrameworkCore;
 
 <#
+var settings = GetSettings();
+var platform = settings.PlatformName;
+
 var toolkits = GetEndpoints().Select(x => x.DomainToolkit).Distinct().OrderBy(x => x);
 
 foreach (var toolkit in toolkits)
-    WriteLine($"using {Platform}.Domain.{toolkit};");
+    WriteLine($"using {platform}.Domain.{toolkit};");
 
 WriteLine("");
 
 foreach (var toolkit in toolkits)
-    WriteLine($"using {Platform}.Persistence.{toolkit};");
+    WriteLine($"using {platform}.Persistence.{toolkit};");
 #>
 
 namespace Shift.Persistence;
@@ -58,7 +60,7 @@ var lines = new List<string>();
 foreach (var endpoint in endpoints)
 {
     var DomainEntityPlural = PluralizeNoun(endpoint.DomainEntity);
-    lines.Add("            builder.ApplyConfiguration(new " + endpoint.DomainEntity + "Configuration());");
+    lines.Add("        builder.ApplyConfiguration(new " + endpoint.DomainEntity + "Configuration());");
 }
 lines.Sort();
 foreach (var line in lines)
