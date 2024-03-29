@@ -19,41 +19,22 @@
 #>
 using <#= Platform #>.Contract.<#= DomainToolkit #>;
 
-namespace <#= Platform #>.Domain.<#= DomainToolkit #>;
+<# if (DomainEntity == "Module") { #>
+using ModuleHandle = Shift.Contract.Curriculums.ModuleHandle;
+
+<# } #>
+namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
 
 public class <#= DomainEntity #>Adapter
 {
-    public void Copy(<#= DomainEntity #>UpdateRequest request, <#= DomainEntity #>Entity entity)
+    public IEnumerable<<#= DomainEntity #>Model> ToListModel(IEnumerable<<#= DomainEntity #>Entity> entities)
     {
-        
+        return entities.Select(ToModel);
     }
 
-    public <#= DomainEntity #>Entity ToEntity(<#= DomainEntity #>CreateRequest request)
+    public <#= DomainEntity #>Model ToModel(<#= DomainEntity #>Entity entity)
     {
-        var entity = new <#= DomainEntity #>Entity
-        {
-            
-        };
-        return entity;
-    }
-
-    public <#= DomainEntity #>Entity ToEntity(<#= DomainEntity #>UpdateRequest request, Guid id)
-    {
-        var entity = new <#= DomainEntity #>Entity
-        {
-            
-        };
-        return entity;
-    }
-
-    public IEnumerable<<#= DomainEntity #>GetResponse> ToListResponse(IEnumerable<<#= DomainEntity #>Entity> entities)
-    {
-        return entities.Select(ToGetResponse);
-    }
-
-    public <#= DomainEntity #>GetResponse ToGetResponse(<#= DomainEntity #>Entity entity)
-    {
-        var response = new <#= DomainEntity #>GetResponse
+        var model = new <#= DomainEntity #>Model
         {
 <#
 for (int i = 0; i < columns.Count; i++) 
@@ -65,17 +46,17 @@ for (int i = 0; i < columns.Count; i++)
 #>            
         };
 
-        return response;
+        return model;
     }
 
-    public IEnumerable<<#= DomainEntity #>SearchResponse> ToSearchResponse(IEnumerable<<#= DomainEntity #>Entity> entities)
+    public IEnumerable<<#= DomainEntity #>Handle> ToHandle(IEnumerable<<#= DomainEntity #>Entity> entities)
     {
-        return entities.Select(ToSearchResponse);
+        return entities.Select(ToHandle);
     }
 
-    public <#= DomainEntity #>SearchResponse ToSearchResponse(<#= DomainEntity #>Entity entity)
+    public <#= DomainEntity #>Handle ToHandle(<#= DomainEntity #>Entity entity)
     {
-        var response = new <#= DomainEntity #>SearchResponse
+        var response = new <#= DomainEntity #>Handle
         {
 <#
 for (int i = 0; i < primaryKey.Length; i++) 

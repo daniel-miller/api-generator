@@ -13,7 +13,11 @@ using Microsoft.EntityFrameworkCore;
 var settings = GetSettings();
 var platform = settings.PlatformName;
 
-var toolkits = GetEndpoints().Select(x => x.DomainToolkit).Distinct().OrderBy(x => x);
+var toolkits = GetEndpoints()
+    .Where(x => x.DatabaseObject == "View")
+    .Select(x => x.DomainToolkit)
+    .Distinct()
+    .OrderBy(x => x);
 
 foreach (var toolkit in toolkits)
     WriteLine($"using {platform}.Domain.{toolkit};");
@@ -24,11 +28,11 @@ foreach (var toolkit in toolkits)
     WriteLine($"using {platform}.Persistence.{toolkit};");
 #>
 
-namespace Shift.Persistence;
+namespace Festival.Persistence;
 
-public class TableDbContext : DbContext
+public class ViewDbContext : DbContext
 {
-    public TableDbContext(DbContextOptions options) : base(options) { }
+    public ViewDbContext(DbContextOptions options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -55,7 +59,7 @@ public class TableDbContext : DbContext
     private void ApplyConfigurations(ModelBuilder builder)
     {
 <#
-var endpoints = GetEndpoints();
+var endpoints = GetEndpoints().Where(x => x.DatabaseObject == "View");
 var lines = new List<string>();
 foreach (var endpoint in endpoints)
 {
@@ -74,6 +78,7 @@ foreach (var line in lines)
 lines = new List<string>();
 foreach (var endpoint in endpoints)
 {
+    
     var DomainEntityPlural = PluralizeNoun(endpoint.DomainEntity);
     lines.Add("        internal DbSet<" + endpoint.DomainEntity + "Entity> " + DomainEntityPlural + " { get; set; }");
 }

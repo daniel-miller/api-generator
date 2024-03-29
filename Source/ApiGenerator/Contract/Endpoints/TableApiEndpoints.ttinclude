@@ -9,21 +9,26 @@
     
     var all = new List<string>();
 
-    var endpoints = GetEndpoints();
+    var endpoints = GetEndpoints()
+        .Where(x => x.DatabaseObject == "Table");
 
     var toolkits = endpoints.Select(x => x.DomainToolkit)
-        .Distinct().OrderBy(x => x).ToList();
+        .Distinct()
+        .OrderBy(x => x)
+        .ToList();
 #>
 namespace <#= Platform #>.Contract
 {
-    public static partial class ApiEndpoints
+    public static partial class TableApiEndpoints
     { <# 
 foreach (var toolkit in toolkits) 
 { 
     var toolsets = endpoints
         .Where(x => x.DomainToolkit == toolkit)
         .Select(x => x.DomainToolset)
-        .Distinct().OrderBy(x => x).ToList();
+        .Distinct()
+        .OrderBy(x => x)
+        .ToList();
 #>
 
         public static partial class <#= toolkit #>
@@ -35,33 +40,20 @@ foreach (var toolkit in toolkits)
             { <#
         var entities = endpoints.Where(x => x.DomainToolkit == toolkit && x.DomainToolset == toolset)
             .Select(x => x.DomainEntity)
-            .Distinct().OrderBy(x => x).ToList();
+            .Distinct()
+            .OrderBy(x => x)
+            .ToList();
 
         foreach (var entity in entities)
         {
             var endpoint = endpoints.Single(x => x.DomainToolkit == toolkit && x.DomainToolset == toolset && x.DomainEntity == entity);
-            var isTable = IsTable(endpoint.DatabaseSchema, endpoint.DatabaseTable);
+            var subtype = endpoint.DatabaseObject;
 
             var collection = $"{endpoint.EndpointBase}/{endpoint.EndpointCollection}";
             var item = $"/{endpoint.EndpointItem}";
             var search = $"/search";
 
-            if (isTable)
-            {
-                all.Add($"{toolkit}.{toolset}.{entity}.Item");
-                all.Add($"{toolkit}.{toolset}.{entity}.List");
-                all.Add($"{toolkit}.{toolset}.{entity}.Search");
-            
-                all.Add($"{toolkit}.{toolset}.{entity}.Create");
-                all.Add($"{toolkit}.{toolset}.{entity}.Delete"); 
-                all.Add($"{toolkit}.{toolset}.{entity}.Update");
-            }
-            else
-            {
-                all.Add($"{toolkit}.{toolset}.{entity}.List");
-            }
-
-            if (isTable)
+            if (subtype == "Table")
             { #>
 
                 public static partial class <#= entity #>
@@ -76,22 +68,12 @@ foreach (var toolkit in toolkits)
                     public const string Search = Collection + _search; // get search results that match criteria
                 
                     public const string Create = Collection;           // create one new entity
-                    public const string Update = Collection + _item;   // update one existing entity
+                    public const string Modify = Collection + _item;   // modify one existing entity
                     public const string Delete = Collection + _item;   // delete one existing entity
                 }
-        <# 
-            } else { #>
-
-                public static partial class <#= entity #>
-                {
-                    public const string Collection = "<#= collection #>";
-
-                    public const string List = Collection;             // get all entities that match criteria
-                }
-        <#
-            } } 
-        #>
-    }
+<# } #>
+<# } #>
+            }
     <# 
     } 
     #>
@@ -99,17 +81,5 @@ foreach (var toolkit in toolkits)
 <# 
 } 
 #>
-    
-        public static string[] All = new string[]
-        {
-<# 
-    foreach (var endpoint in all)
-    {
-        WriteLine($"            {endpoint},");
-    }
-#>
-        };
-
-        // <#= all.Count #> endpoints
     }
 }

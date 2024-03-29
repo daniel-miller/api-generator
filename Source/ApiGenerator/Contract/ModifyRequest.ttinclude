@@ -10,9 +10,8 @@
 <#@ parameter type="System.String" name="DomainEntity" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
-
+    
     var table = GetTable(DatabaseSchema, DatabaseTable);
-
     var columns = new List<DataColumn>();
     foreach (DataColumn column in table.Columns)
         columns.Add(column);
@@ -23,7 +22,7 @@ using System;
 
 namespace <#= Platform #>.Contract.<#= DomainToolkit #>
 {
-    public partial class <#= DomainEntity #>GetResponse
+    public partial class Modify<#= DomainEntity #>
     {
 <#
 string lasttype = null;
@@ -31,17 +30,20 @@ string lasttype = null;
 for (int i = 0; i < columns.Count; i++) 
 { 
     var column = columns[i];
+
+    if (table.PrimaryKey.Contains(column))
+        continue;
+
     var typeName = TypeNameOrAlias(column.DataType);
+
     var datatype = typeName;
-    
-    if (column.DataType != typeof(string) && column.DataType != typeof(byte[]) && column.AllowDBNull)
+    if (column.AllowDBNull && datatype != "string" && datatype != "byte[]")
         datatype += "?";
     
     if (i > 0 && lasttype != typeName)
         WriteLine("");
     
     Write("        public " + datatype + " " + column.ColumnName + " { get; set; }");
-    
     WriteLine("");
     
     lasttype = typeName;

@@ -16,7 +16,7 @@
         columns.Add(column);
     columns.Sort(new EntityColumnComparer());
 #>
-namespace <#= Platform #>.Domain.<#= DomainToolkit #>;
+namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
 
 public partial class <#= DomainEntity #>Entity
 {

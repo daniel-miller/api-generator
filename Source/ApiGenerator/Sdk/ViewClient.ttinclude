@@ -6,7 +6,6 @@
 <#@ import namespace="System.Collections.Generic" #>
 <#@ parameter type="System.String" name="Common" #>
 <#@ parameter type="System.String" name="Platform" #>
-<#@ parameter type="System.String" name="DatabaseObject" #>
 <#@ parameter type="System.String" name="DatabaseSchema" #>
 <#@ parameter type="System.String" name="DatabaseTable" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
@@ -16,7 +15,6 @@
     
     var table = GetTable(DatabaseSchema, DatabaseTable);
     
-    string ApiEndpoints = DatabaseObject + "ApiEndpoints";
     string DomainEntityPlural = PluralizeNoun(DomainEntity);
     string entity = ConvertFirstLetterToLowercase(DomainEntity);
 
@@ -52,7 +50,6 @@
     if (DomainEntity != "-")
         apiSpace += "." + DomainEntity;
 #>
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -61,10 +58,6 @@ using <#= Common #>.Sdk;
 using <#= Platform #>.Contract;
 using <#= Platform #>.Contract.<#= DomainToolkit #>;
 
-<# if (DomainEntity == "Module") { #>
-using ModuleHandle = Shift.Contract.Curriculums.ModuleHandle;
-
-<# } #>
 namespace <#= Platform #>.Sdk.<#= DomainToolkit #>
 {
     public class <#= DomainEntity #>Client : SdkClient
@@ -72,44 +65,10 @@ namespace <#= Platform #>.Sdk.<#= DomainToolkit #>
         public <#= DomainEntity #>Client(IApiClientFactory factory)
             : base(factory) { }
 
-        // Asynchronous
-
-        public async Task<<#= DomainEntity #>Model> GetItemAsync(<#= pkParameters #>)
-            => await GetItem<<#= DomainEntity #>Model>(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, <#= pkProperties #>);
-
         public async Task<IEnumerable<<#= DomainEntity #>Model>> GetListAsync(<#= DomainEntity #>Criteria criteria)
-            => await GetList<<#= DomainEntity #>Model>(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, ConvertToDictionary(criteria));
-        
-        public async Task<IEnumerable<<#= DomainEntity #>Handle>> SearchAsync(<#= DomainEntity #>Criteria criteria)
-            => await GetList<<#= DomainEntity #>Handle>(<#= ApiEndpoints #>.<#= apiSpace #>.Search, ConvertToDictionary(criteria));
-
-        public async Task<<#= DomainEntity #>Model> CreateAsync(Create<#= DomainEntity #> request)
-            => await Create<<#= DomainEntity #>Model>(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, request);
-            
-        public async Task ModifyAsync(Modify<#= DomainEntity #> request, <#= pkParameters #>)
-            => await Modify(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, <#= pkProperties #>, request);
-
-        public async Task DeleteAsync(<#= pkParameters #>)
-            => await Delete(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, <#= pkProperties #>);
-
-        // Synchronous
-
-        public <#= DomainEntity #>Model GetItem(<#= pkParameters #>)
-            => Task.Run(() => GetItemAsync(<#= pkProperties #>)).GetAwaiter().GetResult();
+            => await GetList<<#= DomainEntity #>Model>(ViewApiEndpoints.<#= apiSpace #>.Collection, ConvertToDictionary(criteria));
 
         public IEnumerable<<#= DomainEntity #>Model> GetList(<#= DomainEntity #>Criteria criteria)
             => Task.Run(() => GetListAsync(criteria)).GetAwaiter().GetResult();
-        
-        public IEnumerable<<#= DomainEntity #>Handle> Search(<#= DomainEntity #>Criteria criteria)
-            => Task.Run(() => SearchAsync(criteria)).GetAwaiter().GetResult();
-
-        public <#= DomainEntity #>Model Create(Create<#= DomainEntity #> request)
-            => Task.Run(() => CreateAsync(request)).GetAwaiter().GetResult();
-
-        public void Modify(Modify<#= DomainEntity #> request, <#= pkParameters #>)
-            => Task.Run(() => ModifyAsync(request, <#= pkProperties #>)).GetAwaiter().GetResult();
-
-        public void Delete(<#= pkParameters #>)
-            => Task.Run(() => DeleteAsync(<#= pkProperties #>)).GetAwaiter().GetResult();
     }   
 }

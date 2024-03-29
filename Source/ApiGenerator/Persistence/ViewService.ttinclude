@@ -13,60 +13,60 @@
     
     var table = GetTable(DatabaseSchema, DatabaseTable);
 
-    string DatabaseTablePlural = PluralizeNoun(DatabaseTable);
-    string DomainEntityPlural = PluralizeNoun(DomainEntity);
-
     var pkParameters = "";
     var pkExpression = "";
+    var pkProperties = "";
+    var pkValues = "";
     for (int i = 0; i < table.PrimaryKey.Length; i++)
     {
         if (i > 0)
         {
             pkParameters += ", ";
             pkExpression += " && ";
+            pkProperties += ", ";
+            pkValues += ", ";
         }
         var column = table.PrimaryKey[i];
         var typeName = TypeNameOrAlias(column.DataType);
         pkParameters += typeName + " " + ConvertFirstLetterToLowercase(column.ColumnName);
         pkExpression += "x." + column.ColumnName + " == " + ConvertFirstLetterToLowercase(column.ColumnName);
+        pkProperties += "entity." + column.ColumnName;
+        pkValues += ConvertFirstLetterToLowercase(column.ColumnName);
     }
+
 #>
-using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 
 using <#= Platform #>.Contract.<#= DomainToolkit #>;
-using <#= Platform #>.Domain.<#= DomainToolkit #>;
 
 namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
 
-public class <#= DomainEntity #>Search
+public interface I<#= DomainEntity #>Service
 {
-    private readonly ViewDbContext _db;
+    Task<int> CountAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token);
+    Task<IEnumerable<<#= DomainEntity #>Entity>> SearchAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token);
+}
 
-    public <#= DomainEntity #>Search(ViewDbContext db)
+public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
+{
+    private readonly <#= DomainEntity #>Search _search;
+    private readonly IValidator<<#= DomainEntity #>Criteria> _criteriaValidator;
+
+    public <#= DomainEntity #>Service(<#= DomainEntity #>Search search, IValidator<<#= DomainEntity #>Criteria> criteriaValidator)
     {
-        _db = db;
+        _search = search;
+        _criteriaValidator = criteriaValidator;
     }
 
-    internal async Task<int> CountAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
+    public async Task<int> CountAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
-        return await BuildQuery(criteria)
-            .CountAsync(token);
+        return await _search.CountAsync(criteria, token);
     }
 
-    internal async Task<IEnumerable<<#= DomainEntity #>Entity>> SearchAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
+    public async Task<IEnumerable<<#= DomainEntity #>Entity>> SearchAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
-        return await BuildQuery(criteria)
-            .Skip((criteria.Page - 1) * criteria.Take)
-            .Take(criteria.Take)
-            .ToListAsync(token);
-    }
+        await _criteriaValidator.ValidateAndThrowAsync(criteria, token);
 
-    private IQueryable<<#= DomainEntity #>Entity> BuildQuery(<#= DomainEntity #>Criteria criteria)
-    {
-        var query = _db.<#= DomainEntityPlural #>.AsNoTracking().AsQueryable();
-
-
-
-        return query;
+        return await _search.SearchAsync(criteria, token);
     }
 }

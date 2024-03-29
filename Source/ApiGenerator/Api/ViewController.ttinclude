@@ -43,7 +43,7 @@
     if (DomainToolset != "-")
         apiGroup += ": " + DomainToolset;
 
-    var apiSpace = "QueryApiEndpoints." + DomainToolkit;
+    var apiSpace = "ViewApiEndpoints." + DomainToolkit;
     if (DomainToolset != "-")
         apiSpace += "." + DomainToolset;
     if (DomainEntity != "-")
@@ -84,24 +84,6 @@ public class <#= DomainEntity #>Controller : ControllerBase
         Response.AddPagination(criteria.Page, criteria.Take, results.Count(), count);
 
         var response = adapter.ToListModel(results);
-
-        return Ok(response);
-    }
-
-    [Authorize(<#= apiSpace #>.Search)]
-    [HttpGet(<#= apiSpace #>.Search)]
-    [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>Handle>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>Handle>>> Search([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
-    {
-        var adapter = new <#= DomainEntity #>Adapter();
-        
-        var results = await _<#= entity #>Service.SearchAsync(criteria, token);
-
-        var count = await _<#= entity #>Service.CountAsync(criteria, token);
-
-        Response.AddPagination(criteria.Page, criteria.Take, results.Count(), count);
-
-        var response = adapter.ToHandle(results);
 
         return Ok(response);
     }

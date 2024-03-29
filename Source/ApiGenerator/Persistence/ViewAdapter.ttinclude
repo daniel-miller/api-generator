@@ -17,22 +17,20 @@
     var primaryKey = table.PrimaryKey;
 
 #>
-using <#= Common #>.Contract;
-
 using <#= Platform #>.Contract.<#= DomainToolkit #>;
 
-namespace <#= Platform #>.Domain.<#= DomainToolkit #>;
+namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
 
 public class <#= DomainEntity #>Adapter
 {
-    public IEnumerable<<#= DomainEntity #>GetResponse> ToListResponse(IEnumerable<<#= DomainEntity #>Entity> entities)
+    public IEnumerable<<#= DomainEntity #>Model> ToListModel(IEnumerable<<#= DomainEntity #>Entity> entities)
     {
-        return entities.Select(x => ToGetResponse(x));
+        return entities.Select(ToModel);
     }
 
-    public <#= DomainEntity #>GetResponse ToGetResponse(<#= DomainEntity #>Entity entity)
+    public <#= DomainEntity #>Model ToModel(<#= DomainEntity #>Entity entity)
     {
-        var response = new <#= DomainEntity #>GetResponse
+        var model = new <#= DomainEntity #>Model
         {
 <#
 for (int i = 0; i < columns.Count; i++) 
@@ -44,6 +42,6 @@ for (int i = 0; i < columns.Count; i++)
 #>            
         };
 
-        return response;
+        return model;
     }
 }

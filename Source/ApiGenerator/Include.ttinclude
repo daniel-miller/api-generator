@@ -44,6 +44,7 @@ public System.Data.SqlClient.SqlConnection OpenDatabaseConnection()
 
 public class ApiEndpoint
 {
+    public string DatabaseObject { get; set; }
     public string DatabaseSchema { get; set; }
     public string DatabaseTable { get; set; }
     public string DatabasePrimaryKey { get; set; }
@@ -79,6 +80,7 @@ public List<ApiEndpoint> GetEndpoints()
         {
             var endpoint = new ApiEndpoint();
 
+            endpoint.DatabaseObject = (string)row["DatabaseObject"];
             endpoint.DatabaseSchema = (string)row["DatabaseSchema"];
             endpoint.DatabaseTable = (string)row["DatabaseTable"];   
             endpoint.DatabasePrimaryKey = (string)row["DatabasePrimaryKey"];
@@ -135,12 +137,6 @@ public int? GetColumnPrecision(string table, string column)
 public int? GetColumnScale(string table, string column)
 {
     return (int?)GetScalar($"select NUMERIC_SCALE from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = '{table}' and COLUMN_NAME = '{column}'");
-}
-
-public bool IsTable(string schemaName, string tableName)
-{
-    var query = $"select TABLE_TYPE from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA = '{schemaName}' and TABLE_NAME = '{tableName}'";
-    return GetScalar(query).ToString() == "BASE TABLE";
 }
 
 public class EntityColumnComparer : IComparer<DataColumn>

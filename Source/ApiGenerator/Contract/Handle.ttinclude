@@ -11,19 +11,26 @@
 <#@ parameter type="System.String" name="DomainToolkit" #>
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
     
-#>
-using FluentValidation;
+    var table = GetTable(DatabaseSchema, DatabaseTable);
 
-using <#= Platform #>.Domain.<#= DomainToolkit #>;
-
-namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
-
-public class <#= DomainEntity #>EntityValidator : AbstractValidator<<#= DomainEntity #>Entity>
-{
-    private readonly <#= DomainEntity #>Search _search;
-
-    public <#= DomainEntity #>EntityValidator(<#= DomainEntity #>Search search)
+    var pkProperties = "";
+    for (int i = 0; i < table.PrimaryKey.Length; i++)
     {
-        _search = search;
+        var column = table.PrimaryKey[i];
+        var typeName = TypeNameOrAlias(column.DataType);
+        pkProperties += "        public " + typeName + " " + column.ColumnName + " { get; set; }";
+
+        if (i != table.PrimaryKey.Length - 1)
+            pkProperties += "\r\n";
+    }
+
+#>
+using System;
+
+namespace <#= Platform #>.Contract.<#= DomainToolkit #>
+{
+    public partial class <#= DomainEntity #>Handle
+    {
+<#= pkProperties #>
     }
 }

@@ -5,6 +5,7 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ parameter type="System.String" name="Platform" #>
+<#@ parameter type="System.String" name="DatabaseObject" #>
 <#@ parameter type="System.String" name="DatabaseSchema" #>
 <#@ parameter type="System.String" name="DatabaseTable" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
@@ -38,15 +39,13 @@
 #>
 using Microsoft.EntityFrameworkCore;
 
-using <#= Platform #>.Domain.<#= DomainToolkit #>;
-
 namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
 
 public class <#= DomainEntity #>Store
 {
-    private readonly TableDbContext _db;
+    private readonly <#= DatabaseObject #>DbContext _db;
         
-    public <#= DomainEntity #>Store(TableDbContext db)
+    public <#= DomainEntity #>Store(<#= DatabaseObject #>DbContext db)
     {
         _db = db;
     }

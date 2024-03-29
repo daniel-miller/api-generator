@@ -9,11 +9,25 @@
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #>
 using Microsoft.EntityFrameworkCore;
 
-namespace Festival.Persistence;
+<#
+var settings = GetSettings();
+var platform = settings.PlatformName;
 
-public class ViewDbContext : DbContext
+var toolkits = GetEndpoints()
+    .Where(x => x.DatabaseObject == "Query")
+    .Select(x => x.DomainToolkit)
+    .Distinct()
+    .OrderBy(x => x);
+
+foreach (var toolkit in toolkits)
+    WriteLine($"using {platform}.Persistence.{toolkit};");
+#>
+
+namespace Shift.Persistence;
+
+public class QueryDbContext : DbContext, IContext
 {
-    public ViewDbContext(DbContextOptions options) : base(options) { }
+    public QueryDbContext(DbContextOptions options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -40,7 +54,7 @@ public class ViewDbContext : DbContext
     private void ApplyConfigurations(ModelBuilder builder)
     {
 <#
-var endpoints = GetEndpoints().Where(x => x.DatabaseTable.StartsWith("V"));
+var endpoints = GetEndpoints().Where(x => x.DatabaseObject == "Query");
 var lines = new List<string>();
 foreach (var endpoint in endpoints)
 {
@@ -59,7 +73,6 @@ foreach (var line in lines)
 lines = new List<string>();
 foreach (var endpoint in endpoints)
 {
-    
     var DomainEntityPlural = PluralizeNoun(endpoint.DomainEntity);
     lines.Add("        internal DbSet<" + endpoint.DomainEntity + "Entity> " + DomainEntityPlural + " { get; set; }");
 }
