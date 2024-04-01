@@ -37,13 +37,13 @@
         // Uncomment the code-generation function for each layer you want to generate.
 
         // Contract - Requests and Responses
-        GenerateContractLayer(engine, session, endpoint, project, $@"{output}\{platform}.Contract");
+        // GenerateContractLayer(engine, session, endpoint, project, $@"{output}\{platform}.Contract");
 
         // Persistence - Repositories (Entities and Adapters, Search and Store)
-        GeneratePersistenceLayer(engine, session, endpoint, project, $@"{output}\{platform}.Persistence");
+        // GeneratePersistenceLayer(engine, session, endpoint, project, $@"{output}\{platform}.Persistence");
 
         // SDK - Clients
-        GenerateSdkLayer(engine, session, endpoint, project, $@"{output}\{platform}.Sdk");
+        // GenerateSdkLayer(engine, session, endpoint, project, $@"{output}\{platform}.Sdk");
 
         // API - Controllers
         GenerateApiLayer(engine, session, endpoint, project, $@"{output}\{platform}.Api");

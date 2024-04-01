@@ -82,9 +82,16 @@ public class <#= DomainEntity #>Controller : ControllerBase
     [ProducesResponseType(typeof(<#= DomainEntity #>Model), StatusCodes.Status200OK)]
     public async Task<ActionResult<<#= DomainEntity #>Model>> GetItem(<#= pkParameters #>, CancellationToken token)
     {
-        var results = await _<#= entity #>Service.GetAsync(<#= pkProperties #>, token);
+        var adapter = new <#= DomainEntity #>Adapter();
 
-        return Ok(results);
+        var result = await _<#= entity #>Service.GetAsync(<#= pkProperties #>, token);
+
+        if (result == null)
+            return NotFound();
+
+        var response = adapter.ToModel(result);
+
+        return Ok(response);
     }
 
     [Authorize(<#= apiSpace #>.List)]

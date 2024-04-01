@@ -56,6 +56,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using <#= Common #>.Contract;
 using <#= Common #>.Sdk;
 
 using <#= Platform #>.Contract;
@@ -63,10 +64,15 @@ using <#= Platform #>.Contract.<#= DomainToolkit #>;
 
 namespace <#= Platform #>.Sdk.<#= DomainToolkit #>
 {
-    public class <#= DomainEntity #>Client : SdkClient
+    public class <#= DomainEntity #>Client
     {
+        private readonly SdkClient _sdk;
+
         public <#= DomainEntity #>Client(IApiClientFactory factory)
-            : base(factory) { }
+            => _sdk = new SdkClient(factory);
+
+        public Pagination GetPagination()
+            => _sdk.Pagination;
 
         // Asynchronous
 

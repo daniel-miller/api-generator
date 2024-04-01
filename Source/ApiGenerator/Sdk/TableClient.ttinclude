@@ -56,6 +56,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using <#= Common #>.Contract;
 using <#= Common #>.Sdk;
 
 using <#= Platform #>.Contract;
@@ -67,30 +68,35 @@ using ModuleHandle = Shift.Contract.Curriculums.ModuleHandle;
 <# } #>
 namespace <#= Platform #>.Sdk.<#= DomainToolkit #>
 {
-    public class <#= DomainEntity #>Client : SdkClient
+    public class <#= DomainEntity #>Client
     {
+        private readonly SdkClient _sdk;
+
         public <#= DomainEntity #>Client(IApiClientFactory factory)
-            : base(factory) { }
+            => _sdk = new SdkClient(factory);
+
+        public Pagination GetPagination()
+            => _sdk.Pagination;
 
         // Asynchronous
 
         public async Task<<#= DomainEntity #>Model> GetItemAsync(<#= pkParameters #>)
-            => await GetItem<<#= DomainEntity #>Model>(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, <#= pkProperties #>);
+            => await _sdk.GetItem<<#= DomainEntity #>Model>(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, <#= pkProperties #>);
 
         public async Task<IEnumerable<<#= DomainEntity #>Model>> GetListAsync(<#= DomainEntity #>Criteria criteria)
-            => await GetList<<#= DomainEntity #>Model>(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, ConvertToDictionary(criteria));
+            => await _sdk.GetList<<#= DomainEntity #>Model>(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, _sdk.ConvertToDictionary(criteria));
         
         public async Task<IEnumerable<<#= DomainEntity #>Handle>> SearchAsync(<#= DomainEntity #>Criteria criteria)
-            => await GetList<<#= DomainEntity #>Handle>(<#= ApiEndpoints #>.<#= apiSpace #>.Search, ConvertToDictionary(criteria));
+            => await _sdk.GetList<<#= DomainEntity #>Handle>(<#= ApiEndpoints #>.<#= apiSpace #>.Search, _sdk.ConvertToDictionary(criteria));
 
         public async Task<<#= DomainEntity #>Model> CreateAsync(Create<#= DomainEntity #> request)
-            => await Create<<#= DomainEntity #>Model>(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, request);
+            => await _sdk.Create<<#= DomainEntity #>Model>(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, request);
             
         public async Task ModifyAsync(Modify<#= DomainEntity #> request, <#= pkParameters #>)
-            => await Modify(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, <#= pkProperties #>, request);
+            => await _sdk.Modify(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, <#= pkProperties #>, request);
 
         public async Task DeleteAsync(<#= pkParameters #>)
-            => await Delete(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, <#= pkProperties #>);
+            => await _sdk.Delete(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, <#= pkProperties #>);
 
         // Synchronous
 

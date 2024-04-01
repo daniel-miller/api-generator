@@ -53,6 +53,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using <#= Common #>.Contract;
 using <#= Common #>.Sdk;
 
 using <#= Platform #>.Contract;
@@ -60,13 +61,18 @@ using <#= Platform #>.Contract.<#= DomainToolkit #>;
 
 namespace <#= Platform #>.Sdk.<#= DomainToolkit #>
 {
-    public class <#= DomainEntity #>Client : SdkClient
+    public class <#= DomainEntity #>Client
     {
+        private readonly SdkClient _sdk;
+
         public <#= DomainEntity #>Client(IApiClientFactory factory)
-            : base(factory) { }
+            => _sdk = new SdkClient(factory);
+
+        public Pagination GetPagination()
+            => _sdk.Pagination;
 
         public async Task<IEnumerable<<#= DomainEntity #>Model>> GetListAsync(<#= DomainEntity #>Criteria criteria)
-            => await GetList<<#= DomainEntity #>Model>(ViewApiEndpoints.<#= apiSpace #>.Collection, ConvertToDictionary(criteria));
+            => await _sdk.GetList<<#= DomainEntity #>Model>(ViewApiEndpoints.<#= apiSpace #>.Collection, _sdk.ConvertToDictionary(criteria));
 
         public IEnumerable<<#= DomainEntity #>Model> GetList(<#= DomainEntity #>Criteria criteria)
             => Task.Run(() => GetListAsync(criteria)).GetAwaiter().GetResult();
