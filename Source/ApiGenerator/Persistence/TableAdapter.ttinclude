@@ -61,7 +61,7 @@ for (int i = 0; i < columns.Count; i++)
         return entity;
     }
 
-    public IEnumerable<<#= DomainEntity #>Model> ToListModel(IEnumerable<<#= DomainEntity #>Entity> entities)
+    public IEnumerable<<#= DomainEntity #>Model> ToModel(IEnumerable<<#= DomainEntity #>Entity> entities)
     {
         return entities.Select(ToModel);
     }

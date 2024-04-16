@@ -6,8 +6,8 @@
 <#@ import namespace="System.Collections.Generic" #>
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
 
-    var DatabaseSchema = "contacts";
-    var DatabaseTable = "TPersonSecret";
+    var DatabaseSchema = "accounts";
+    var DatabaseTable = "TUserComment";
     var DomainEntity = DatabaseTable;
 
     var table = GetTable(DatabaseSchema, DatabaseTable);
@@ -27,9 +27,7 @@
 #>
 internal class <#= DomainEntity #>Configuration : EntityTypeConfiguration<<#= DomainEntity #>>
 {
-    public <#= DomainEntity #>Configuration() : this("<#= DatabaseSchema #>") { }
-
-    public <#= DomainEntity #>Configuration(string schema)
+    public <#= DomainEntity #>Configuration()
     {
         ToTable("<#= DatabaseTable #>", "<#= DatabaseSchema #>");
         HasKey(x => new { <#= pkColumnNames #> });

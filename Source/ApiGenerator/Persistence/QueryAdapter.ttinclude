@@ -27,7 +27,7 @@ namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
 
 public class <#= DomainEntity #>Adapter
 {
-    public IEnumerable<<#= DomainEntity #>Model> ToListModel(IEnumerable<<#= DomainEntity #>Entity> entities)
+    public IEnumerable<<#= DomainEntity #>Model> ToModel(IEnumerable<<#= DomainEntity #>Entity> entities)
     {
         return entities.Select(ToModel);
     }

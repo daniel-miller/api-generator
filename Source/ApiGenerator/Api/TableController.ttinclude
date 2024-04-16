@@ -84,14 +84,14 @@ public class <#= DomainEntity #>Controller : ControllerBase
     {
         var adapter = new <#= DomainEntity #>Adapter();
 
-        var result = await _<#= entity #>Service.GetAsync(<#= pkProperties #>, token);
+        var entity = await _<#= entity #>Service.GetAsync(<#= pkProperties #>, token);
 
-        if (result == null)
+        if (entity == null)
             return NotFound();
 
-        var response = adapter.ToModel(result);
+        var model = adapter.ToModel(entity);
 
-        return Ok(response);
+        return Ok(model);
     }
 
     [Authorize(<#= apiSpace #>.List)]
@@ -101,15 +101,15 @@ public class <#= DomainEntity #>Controller : ControllerBase
     {
         var adapter = new <#= DomainEntity #>Adapter();
         
-        var results = await _<#= entity #>Service.SearchAsync(criteria, token);
+        var entities = await _<#= entity #>Service.SearchAsync(criteria, token);
 
         var count = await _<#= entity #>Service.CountAsync(criteria, token);
 
-        Response.AddPagination(criteria.Page, criteria.Take, results.Count(), count);
+        Response.AddPagination(criteria.Page, criteria.Take, entities.Count(), count);
 
-        var response = adapter.ToListModel(results);
+        var model = adapter.ToModel(entities);
 
-        return Ok(response);
+        return Ok(model);
     }
 
     [Authorize(<#= apiSpace #>.Search)]

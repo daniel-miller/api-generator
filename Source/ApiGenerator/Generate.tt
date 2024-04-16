@@ -46,7 +46,7 @@
         // GenerateSdkLayer(engine, session, endpoint, project, $@"{output}\{platform}.Sdk");
 
         // API - Controllers
-        GenerateApiLayer(engine, session, endpoint, project, $@"{output}\{platform}.Api");
+        // GenerateApiLayer(engine, session, endpoint, project, $@"{output}\{platform}.Api");
     }
 #>
 <#+

@@ -1,7 +1,7 @@
 ﻿{
     "CommonName": "Common",
-    "DatabaseName": "M01_Local_PLATFORM",
+    "DatabaseName": "DATABASE",
     "EndpointTable": "databases.TApiEndpoint",
-    "OutputDirectory": "D:\\TEMP",
+    "OutputDirectory": "d:\\temp\\t4",
     "PlatformName": "PLATFORM"
 }
