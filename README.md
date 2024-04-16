@@ -66,3 +66,11 @@ select * from databases.TApiEndpoint as e where not exists
 (select * from INFORMATION_SCHEMA.TABLES as t
  where TABLE_SCHEMA = e.DatabaseSchema and t.TABLE_NAME = e.DatabaseTable)
 ```
+
+### Entity Framework 6
+
+You can generate an entity class for Entity Framework 6 (in a .NET Framework 4.8 library) using the text template `Persistence/EF6/Entity.tt`. Here are the steps:
+
+1. In the `Settings.json` file, update the settings with your database name.
+2. In the `Entity.tt` file, update the DatabaseSchema and DatabaseTable variables.
+3. Click Save and the generated class is output to `Entity.txt`.
