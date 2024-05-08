@@ -75,17 +75,13 @@ public class <#= DomainEntity #>Controller : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>Model>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<<#= DomainEntity #>Model>>> GetList([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
-        var adapter = new <#= DomainEntity #>Adapter();
-        
-        var entities = await _<#= entity #>Service.SearchAsync(criteria, token);
+        var models = await _<#= entity #>Service.SearchAsync(criteria, token);
         
         var count = await _<#= entity #>Service.CountAsync(criteria, token);
 
-        Response.AddPagination(criteria.Page, criteria.Take, entities.Count(), count);
+        Response.AddPagination(criteria.Page, criteria.Take, models.Count(), count);
 
-        var model = adapter.ToModel(entities);
-
-        return Ok(model);
+        return Ok(models);
     }
 
     [Authorize(<#= apiSpace #>.Search)]
@@ -93,16 +89,12 @@ public class <#= DomainEntity #>Controller : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>Handle>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<<#= DomainEntity #>Handle>>> Search([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
-        var adapter = new <#= DomainEntity #>Adapter();
-        
-        var entities = await _<#= entity #>Service.SearchAsync(criteria, token);
+        var handles = await _<#= entity #>Service.SearchAsync(criteria, token);
 
         var count = await _<#= entity #>Service.CountAsync(criteria, token);
 
-        Response.AddPagination(criteria.Page, criteria.Take, entities.Count(), count);
+        Response.AddPagination(criteria.Page, criteria.Take, handles.Count(), count);
 
-        var model = adapter.ToHandle(entities);
-
-        return Ok(model);
+        return Ok(handles);
     }
 }

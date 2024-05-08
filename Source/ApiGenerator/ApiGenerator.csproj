@@ -242,7 +242,7 @@
     </None>
     <None Update="Include.ttinclude">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Include.txt</LastGenOutput>
+      <LastGenOutput>Include.cs</LastGenOutput>
     </None>
     <None Update="Persistence\EF6\Entity.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

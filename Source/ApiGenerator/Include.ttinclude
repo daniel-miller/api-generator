@@ -1,6 +1,4 @@
-﻿<#@ template debug="false" hostspecific="false" language="C#" #>
-<#@ output extension=".txt" #>
-<#@ assembly name="System" #>
+﻿<#@ assembly name="System" #>
 <#@ assembly name="System.Core" #>
 <#@ assembly name="System.Data" #>
 <#@ assembly name="System.Memory" #>

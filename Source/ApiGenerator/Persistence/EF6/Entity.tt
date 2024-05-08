@@ -7,7 +7,7 @@
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
     
     var DatabaseSchema = "accounts";
-    var DatabaseTable = "TUserComment";
+    var DatabaseTable = "QOrganization";
     var DomainEntity = DatabaseTable;
 
     var table = GetTable(DatabaseSchema, DatabaseTable);

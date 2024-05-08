@@ -27,7 +27,7 @@ namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
 
 public class <#= DomainEntity #>Adapter
 {
-    public void Copy(Modify<#= DomainEntity #> request, <#= DomainEntity #>Entity entity)
+    public void Copy(Modify<#= DomainEntity #> modify, <#= DomainEntity #>Entity entity)
     {
 <#
 for (int i = 0; i < columns.Count; i++) 
@@ -36,11 +36,11 @@ for (int i = 0; i < columns.Count; i++)
     if (primaryKey.Contains(column))
         continue;
 
-    WriteLine("        entity." + column.ColumnName + " = request." + column.ColumnName + ";");
+    WriteLine("        entity." + column.ColumnName + " = modify." + column.ColumnName + ";");
 }
 #>    }
 
-    public <#= DomainEntity #>Entity ToEntity(Create<#= DomainEntity #> request)
+    public <#= DomainEntity #>Entity ToEntity(Create<#= DomainEntity #> create)
     {
         var entity = new <#= DomainEntity #>Entity
         {
@@ -48,10 +48,7 @@ for (int i = 0; i < columns.Count; i++)
 for (int i = 0; i < columns.Count; i++) 
 {
     var column = columns[i];
-    if (primaryKey.Contains(column))
-        continue;
-
-    Write("            " + column.ColumnName + " = request." + column.ColumnName);
+    Write("            " + column.ColumnName + " = create." + column.ColumnName);
     if (i < columns.Count - 1)
         WriteLine(",");
 }
@@ -72,8 +69,9 @@ for (int i = 0; i < columns.Count; i++)
         {
 <#
 for (int i = 0; i < columns.Count; i++) 
-{        
-    Write("            " + columns[i].ColumnName + " = entity." + columns[i].ColumnName);
+{  
+    var column = columns[i];
+    Write("            " + column.ColumnName + " = entity." + column.ColumnName);
     if (i < columns.Count - 1)
         WriteLine(",");
 }

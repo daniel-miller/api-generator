@@ -4,7 +4,9 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
+<#@ parameter type="System.String" name="Common" #>
 <#@ parameter type="System.String" name="Platform" #>
+<#@ parameter type="System.String" name="DatabaseObject" #>
 <#@ parameter type="System.String" name="DatabaseSchema" #>
 <#@ parameter type="System.String" name="DatabaseTable" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
@@ -14,6 +16,7 @@
     
     var table = GetTable(DatabaseSchema, DatabaseTable);
     
+    string ApiEndpoints = DatabaseObject + "ApiEndpoints";
     string DomainEntityPlural = PluralizeNoun(DomainEntity);
     string entity = ConvertFirstLetterToLowercase(DomainEntity);
 
@@ -32,7 +35,7 @@
         }
         var column = table.PrimaryKey[i];
         var typeName = TypeNameOrAlias(column.DataType);
-        pkParameters += "[FromRoute] " + typeName + " " + ConvertFirstLetterToLowercase(column.ColumnName);
+        pkParameters += typeName + " " + ConvertFirstLetterToLowercase(column.ColumnName);
         pkExpression += "x." + column.ColumnName + " == " + ConvertFirstLetterToLowercase(column.ColumnName);
         pkProperties += ConvertFirstLetterToLowercase(column.ColumnName);
         pkValuesForCreate += column.ColumnName + " {entity." + column.ColumnName + "}";
@@ -43,58 +46,38 @@
     if (DomainToolset != "-")
         apiGroup += ": " + DomainToolset;
 
-    var apiSpace = "ViewApiEndpoints." + DomainToolkit;
+    var apiSpace = DomainToolkit;
     if (DomainToolset != "-")
         apiSpace += "." + DomainToolset;
     if (DomainEntity != "-")
         apiSpace += "." + DomainEntity;
 #>
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-
-using <#= Platform #>.Contract;
 using <#= Platform #>.Contract.<#= DomainToolkit #>;
-using <#= Platform #>.Persistence.<#= DomainToolkit #>;
 
-namespace <#= Platform #>.Api.<#= DomainToolkit #>;
+using <#= Platform #>.Sdk.<#= DomainToolkit #>;
 
-[ApiController]
-[ApiExplorerSettings(GroupName = "<#= apiGroup #>")]
-[Authorize]
-public class <#= DomainEntity #>Controller : ControllerBase
+<# if (DomainEntity == "Module") { #>
+using ModuleHandle = Shift.Contract.Curriculums.ModuleHandle;
+
+<# } #>
+namespace <#= Platform #>.Tests.Manual.<#= DomainToolkit #>
 {
-    private readonly I<#= DomainEntity #>Service _<#= entity #>Service;
-
-    public <#= DomainEntity #>Controller(I<#= DomainEntity #>Service <#= entity #>Service)
+    [Trait("Category", "SDK")]
+    public class <#= DomainEntity #>ClientTests : IClassFixture<ApiClientFixture>
     {
-        _<#= entity #>Service = <#= entity #>Service;
-    }
+        ApiClientFixture _fixture;
 
-    [Authorize(<#= apiSpace #>.List)]
-    [HttpGet(<#= apiSpace #>.List)]
-    [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>Model>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>Model>>> GetList([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
-    {
-        var models = await _<#= entity #>Service.SearchAsync(criteria, token);
-        
-        var count = await _<#= entity #>Service.CountAsync(criteria, token);
+        public <#= DomainEntity #>ClientTests(ApiClientFixture fixture)
+        {
+            _fixture = fixture;
+        }
 
-        Response.AddPagination(criteria.Page, criteria.Take, models.Count(), count);
-
-        return Ok(models);
-    }
-
-    [Authorize(<#= apiSpace #>.Search)]
-    [HttpGet(<#= apiSpace #>.Search)]
-    [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>Handle>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>Handle>>> Search([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
-    {
-        var handles = await _<#= entity #>Service.SearchAsync(criteria, token);
-
-        var count = await _<#= entity #>Service.CountAsync(criteria, token);
-
-        Response.AddPagination(criteria.Page, criteria.Take, handles.Count(), count);
-
-        return Ok(handles);
+        [Fact]
+        public async Task Search()
+        {
+            var client = new <#= DomainEntity #>Client(_fixture.ApiClientFactory);
+            var criteria = new <#= DomainEntity #>Criteria();
+            var handles = await client.SearchAsync(criteria);
+        }
     }
 }

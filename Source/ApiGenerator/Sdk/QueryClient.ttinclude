@@ -77,13 +77,13 @@ namespace <#= Platform #>.Sdk.<#= DomainToolkit #>
         // Asynchronous
 
         public async Task<<#= DomainEntity #>Model> GetItemAsync(<#= pkParameters #>)
-            => await GetItem<<#= DomainEntity #>Model>(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, <#= pkProperties #>);
+            => await _sdk.GetItem<<#= DomainEntity #>Model>(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, <#= pkProperties #>);
 
         public async Task<IEnumerable<<#= DomainEntity #>Model>> GetListAsync(<#= DomainEntity #>Criteria criteria)
-            => await GetList<<#= DomainEntity #>Model>(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, ConvertToDictionary(criteria));
+            => await _sdk.GetList<<#= DomainEntity #>Model>(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, _sdk.ConvertToDictionary(criteria));
         
         public async Task<IEnumerable<<#= DomainEntity #>Handle>> SearchAsync(<#= DomainEntity #>Criteria criteria)
-            => await GetList<<#= DomainEntity #>Handle>(<#= ApiEndpoints #>.<#= apiSpace #>.Search, ConvertToDictionary(criteria));
+            => await _sdk.GetList<<#= DomainEntity #>Handle>(<#= ApiEndpoints #>.<#= apiSpace #>.Search, _sdk.ConvertToDictionary(criteria));
 
         // Synchronous
 

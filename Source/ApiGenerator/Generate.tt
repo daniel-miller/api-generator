@@ -47,6 +47,9 @@
 
         // API - Controllers
         // GenerateApiLayer(engine, session, endpoint, project, $@"{output}\{platform}.Api");
+
+        // Unit Tests
+        GenerateTestLayer(engine, session, endpoint, project, $@"{output}\{platform}.Test");
     }
 #>
 <#+
@@ -58,11 +61,8 @@
         GenerateClass(engine, session, endpoint, $@"{project}\Contract\Criteria.ttinclude", $@"{folder}\{endpoint.DomainEntity}Criteria.cs");
         GenerateClass(engine, session, endpoint, $@"{project}\Contract\Model.ttinclude", $@"{folder}\{endpoint.DomainEntity}Model.cs");
         
-        if (subtype == "Tables" || subtype == "Queries")
-        {
-            GenerateClass(engine, session, endpoint, $@"{project}\Contract\Handle.ttinclude", $@"{folder}\{endpoint.DomainEntity}Handle.cs");
-        }
-
+        GenerateClass(engine, session, endpoint, $@"{project}\Contract\Handle.ttinclude", $@"{folder}\{endpoint.DomainEntity}Handle.cs");
+        
         if (subtype == "Tables")
         {
             GenerateClass(engine, session, endpoint, $@"{project}\Contract\CreateRequest.ttinclude", $@"{folder}\Create{endpoint.DomainEntity}.cs");
@@ -85,7 +85,7 @@
             GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableEntityValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}EntityValidator.cs");
             GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableSearch.ttinclude", $@"{folder}\{endpoint.DomainEntity}Search.cs");
             GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableStore.ttinclude", $@"{folder}\{endpoint.DomainEntity}Store.cs");
-            GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableService.ttinclude", $@"{folder}\{endpoint.DomainEntity}Service.cs");
+            GenerateClass(engine, session, endpoint, $@"{project}\Persistence\{endpoint.DatabaseObject}Service.ttinclude", $@"{folder}\{endpoint.DomainEntity}Service.cs");
         }
         else if (subtype == "Views")
         {
@@ -107,6 +107,13 @@
         var subtype = PluralizeNoun(endpoint.DatabaseObject);
         var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, subtype);
         GenerateClass(engine, session, endpoint, $@"{project}\Api\{endpoint.DatabaseObject}Controller.ttinclude", $@"{folder}\{endpoint.DomainEntity}Controller.cs");
+    }
+
+    public void GenerateTestLayer(Engine engine, TextTemplatingSession session, ApiEndpoint endpoint, string project, string root)
+    {
+        var subtype = PluralizeNoun(endpoint.DatabaseObject);
+        var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, subtype);
+        GenerateClass(engine, session, endpoint, $@"{project}\Test\{endpoint.DatabaseObject}ClientTests.ttinclude", $@"{folder}\{endpoint.DomainEntity}ClientTests.cs");
     }
 
     public void GenerateClass(Engine engine, TextTemplatingSession session, ApiEndpoint endpoint, string input, string output)
