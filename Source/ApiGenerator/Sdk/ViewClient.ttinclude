@@ -9,12 +9,14 @@
 <#@ parameter type="System.String" name="DatabaseObject" #>
 <#@ parameter type="System.String" name="DatabaseSchema" #>
 <#@ parameter type="System.String" name="DatabaseTable" #>
+<#@ parameter type="System.String" name="DatabasePrimaryKey" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
 <#@ parameter type="System.String" name="DomainToolset" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
     
     var table = GetTable(DatabaseSchema, DatabaseTable);
+    var primaryKey = DatabasePrimaryKey.Split(new []{','});
     
     string ApiEndpoints = DatabaseObject + "ApiEndpoints";
     string DomainEntityPlural = PluralizeNoun(DomainEntity);
@@ -25,15 +27,19 @@
     var pkProperties = "";
     var pkValuesForCreate = "";
     var pkValuesForUpdate = "";
-    for (int i = 0; i < table.PrimaryKey.Length; i++)
+    for (int i = 0; i < primaryKey.Length; i++)
     {
+        Console.WriteLine(primaryKey[i]);
         if (i > 0)
         {
             pkParameters += ", ";
             pkExpression += " && ";
             pkProperties += ", ";
         }
-        var column = table.PrimaryKey[i];
+        var column = table.Columns[primaryKey[i]];
+        if (column == null)
+            throw new Exception("Primary key column not found: " + DatabaseTable + "." + primaryKey[i]);
+
         var typeName = TypeNameOrAlias(column.DataType);
         pkParameters += typeName + " " + ConvertFirstLetterToLowercase(column.ColumnName);
         pkExpression += "x." + column.ColumnName + " == " + ConvertFirstLetterToLowercase(column.ColumnName);
@@ -46,7 +52,7 @@
     if (DomainToolset != "-")
         apiGroup += ": " + DomainToolset;
 
-    var apiSpace = DomainToolkit;
+    var apiSpace = DomainToolkit + "Api";
     if (DomainToolset != "-")
         apiSpace += "." + DomainToolset;
     if (DomainEntity != "-")

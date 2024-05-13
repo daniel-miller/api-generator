@@ -25,7 +25,7 @@
     var project = Host.ResolveAssemblyReference("$(ProjectDir)");
     var root = CreateFolder($@"{output}\{platform}.Contract");
 
-    var endpointFolder = $@"{root}\Foundations";
+    var endpointFolder = $@"{root}\Foundation";
     CreateFolder(endpointFolder);
 
     GenerateClass(engine, session, null, $@"{project}\Contract\Endpoints\TableApiEndpoints.ttinclude", $@"{endpointFolder}\TableApiEndpoints.cs");
@@ -39,8 +39,8 @@
         // Contract - Requests and Responses
         // GenerateContractLayer(engine, session, endpoint, project, $@"{output}\{platform}.Contract");
 
-        // Persistence - Repositories (Entities and Adapters, Search and Store)
-        // GeneratePersistenceLayer(engine, session, endpoint, project, $@"{output}\{platform}.Persistence");
+        // Service - Repositories (Entities and Adapters, Search and Store)
+        // GenerateServiceLayer(engine, session, endpoint, project, $@"{output}\{platform}.Service");
 
         // SDK - Clients
         // GenerateSdkLayer(engine, session, endpoint, project, $@"{output}\{platform}.Sdk");
@@ -49,14 +49,14 @@
         // GenerateApiLayer(engine, session, endpoint, project, $@"{output}\{platform}.Api");
 
         // Unit Tests
-        GenerateTestLayer(engine, session, endpoint, project, $@"{output}\{platform}.Test");
+        // GenerateTestLayer(engine, session, endpoint, project, $@"{output}\{platform}.Test");
     }
 #>
 <#+
     public void GenerateContractLayer(Engine engine, TextTemplatingSession session, ApiEndpoint endpoint, string project, string root)
     {
         var subtype = PluralizeNoun(endpoint.DatabaseObject);
-        var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, subtype, endpoint.DomainEntity);
+        var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, "Data", subtype, endpoint.DomainEntity);
 
         GenerateClass(engine, session, endpoint, $@"{project}\Contract\Criteria.ttinclude", $@"{folder}\{endpoint.DomainEntity}Criteria.cs");
         GenerateClass(engine, session, endpoint, $@"{project}\Contract\Model.ttinclude", $@"{folder}\{endpoint.DomainEntity}Model.cs");
@@ -70,10 +70,10 @@
         }
     }
 
-    public void GeneratePersistenceLayer(Engine engine, TextTemplatingSession session, ApiEndpoint endpoint, string project, string root)
+    public void GenerateServiceLayer(Engine engine, TextTemplatingSession session, ApiEndpoint endpoint, string project, string root)
     {
         var subtype = PluralizeNoun(endpoint.DatabaseObject);
-        var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, subtype, endpoint.DomainEntity);
+        var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, "Data", subtype, endpoint.DomainEntity);
 
         GenerateClass(engine, session, endpoint, $@"{project}\Persistence\CriteriaValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}CriteriaValidator.cs");
         GenerateClass(engine, session, endpoint, $@"{project}\Persistence\TableEntity.ttinclude", $@"{folder}\{endpoint.DomainEntity}Entity.cs");
@@ -98,21 +98,21 @@
     public void GenerateSdkLayer(Engine engine, TextTemplatingSession session, ApiEndpoint endpoint, string project, string root)
     {
         var subtype = PluralizeNoun(endpoint.DatabaseObject);
-        var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, subtype);
+        var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset);
         GenerateClass(engine, session, endpoint, $@"{project}\Sdk\{endpoint.DatabaseObject}Client.ttinclude", $@"{folder}\{endpoint.DomainEntity}Client.cs");
     }
 
     public void GenerateApiLayer(Engine engine, TextTemplatingSession session, ApiEndpoint endpoint, string project, string root)
     {
         var subtype = PluralizeNoun(endpoint.DatabaseObject);
-        var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, subtype);
+        var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset);
         GenerateClass(engine, session, endpoint, $@"{project}\Api\{endpoint.DatabaseObject}Controller.ttinclude", $@"{folder}\{endpoint.DomainEntity}Controller.cs");
     }
 
     public void GenerateTestLayer(Engine engine, TextTemplatingSession session, ApiEndpoint endpoint, string project, string root)
     {
         var subtype = PluralizeNoun(endpoint.DatabaseObject);
-        var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, subtype);
+        var folder = GeneratePath(root, endpoint.DomainToolkit, endpoint.DomainToolset, "Data", subtype);
         GenerateClass(engine, session, endpoint, $@"{project}\Test\{endpoint.DatabaseObject}ClientTests.ttinclude", $@"{folder}\{endpoint.DomainEntity}ClientTests.cs");
     }
 
@@ -148,7 +148,7 @@
         return folder;
     }
 
-    public string GeneratePath(string a, string b, string c, string d, string e = "-")
+    public string GeneratePath(string a, string b, string c, string d = "-", string e = "-", string f = "-")
     {
         var path = a;
 
@@ -163,6 +163,9 @@
 
         if (e != "-")
             path += $@"\{e}";
+
+        if (f != "-")
+            path += $@"\{f}";
          
         return CreateFolder(path);
     }

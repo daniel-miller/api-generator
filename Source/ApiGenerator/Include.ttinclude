@@ -103,7 +103,7 @@ public DataTable GetTable(string schemaName, string tableName)
     using (var connection = OpenDatabaseConnection())
     {
         var table = new DataTable(tableName);
-        using (var da = new System.Data.SqlClient.SqlDataAdapter($"SELECT * FROM {schemaName}.[{tableName}] WHERE 1=0", connection))
+        using (var da = new System.Data.SqlClient.SqlDataAdapter($"SELECT * FROM [{schemaName}].[{tableName}] WHERE 1=0", connection))
         {
             da.MissingSchemaAction = MissingSchemaAction.AddWithKey;
             da.Fill(table);

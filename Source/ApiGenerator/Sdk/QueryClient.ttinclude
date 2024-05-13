@@ -46,7 +46,7 @@
     if (DomainToolset != "-")
         apiGroup += ": " + DomainToolset;
 
-    var apiSpace = DomainToolkit;
+    var apiSpace = DomainToolkit + "Api";
     if (DomainToolset != "-")
         apiSpace += "." + DomainToolset;
     if (DomainEntity != "-")

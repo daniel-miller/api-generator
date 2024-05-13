@@ -31,7 +31,7 @@ foreach (var toolkit in toolkits)
         .ToList();
 #>
 
-        public static partial class <#= toolkit #>
+        public static partial class <#= toolkit #>Api
         { <#
     foreach (var toolset in toolsets) 
     { #>

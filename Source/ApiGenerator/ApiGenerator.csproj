@@ -55,6 +55,11 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Generate.txt</LastGenOutput>
     </None>
+    <None Update="Generate.txt">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Generate.tt</DependentUpon>
+    </None>
     <None Update="Persistence\EF6\EntityConfiguration.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityConfiguration.txt</LastGenOutput>

@@ -26,7 +26,7 @@ foreach (var toolkit in toolkits)
         .Distinct().OrderBy(x => x).ToList();
 #>
 
-        public static partial class <#= toolkit #>
+        public static partial class <#= toolkit #>Api
         { <#
     foreach (var toolset in toolsets) 
     { #>
