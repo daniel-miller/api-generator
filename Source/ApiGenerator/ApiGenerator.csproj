@@ -55,12 +55,22 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Generate.txt</LastGenOutput>
     </None>
-    <None Update="Generate.txt">
+    <None Update="Service\DbContexts\TableDbContext.txt">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>Generate.tt</DependentUpon>
+      <DependentUpon>TableDbContext.tt</DependentUpon>
     </None>
-    <None Update="Persistence\EF6\EntityConfiguration.tt">
+    <None Update="Service\DbContexts\ViewDbContext.txt">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ViewDbContext.tt</DependentUpon>
+    </None>
+    <None Update="Service\EF6\Entity.txt">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Entity.tt</DependentUpon>
+    </None>
+    <None Update="Service\EF6\EntityConfiguration.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityConfiguration.txt</LastGenOutput>
     </None>
@@ -68,21 +78,26 @@
       <LastGenOutput>ProjectionDbContext.txt</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>
-    <None Update="Persistence\DbContexts\TableDbContext.tt">
+    <None Update="Service\DbContexts\TableDbContext.tt">
       <LastGenOutput>TableDbContext.txt</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>
-    <None Update="Persistence\DbContexts\QueryDbContext.tt">
+    <None Update="Service\DbContexts\QueryDbContext.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>QueryDbContext.txt</LastGenOutput>
     </None>
-    <None Update="Persistence\DbContexts\ViewDbContext.tt">
+    <None Update="Service\DbContexts\ViewDbContext.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ViewDbContext.txt</LastGenOutput>
     </None>
     <None Update="Persistence\CoreDbContext.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>CoreDbContext.txt</LastGenOutput>
+    </None>
+    <None Update="Service\EF6\EntityConfiguration.txt">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>EntityConfiguration.tt</DependentUpon>
     </None>
     <None Update="ViewAdapter.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -249,7 +264,7 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Include.cs</LastGenOutput>
     </None>
-    <None Update="Persistence\EF6\Entity.tt">
+    <None Update="Service\EF6\Entity.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Entity.txt</LastGenOutput>
     </None>

@@ -47,7 +47,7 @@
     if (DomainToolset != "-")
         apiGroup += ": " + DomainToolset;
 
-    var apiSpace = "TableApiEndpoints." + DomainToolkit;
+    var apiSpace = "TableApiEndpoints." + DomainToolkit + "Api";
     if (DomainToolset != "-")
         apiSpace += "." + DomainToolset;
     if (DomainEntity != "-")
@@ -60,7 +60,7 @@ using <#= Common #>.Contract;
 
 using <#= Platform #>.Contract;
 using <#= Platform #>.Contract.<#= DomainToolkit #>;
-using <#= Platform #>.Persistence.<#= DomainToolkit #>;
+using <#= Platform #>.Service.<#= DomainToolkit #>.Data;
 
 <# if (DomainEntity == "Module") { #>
 using ModuleHandle = Shift.Contract.Curriculums.ModuleHandle;
@@ -98,7 +98,7 @@ public class <#= DomainEntity #>Controller : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>Model>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<<#= DomainEntity #>Model>>> GetList([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
-        var models = await _<#= entity #>Service.SearchAsync(criteria, token);
+        var models = await _<#= entity #>Service.ListAsync(criteria, token);
 
         var count = await _<#= entity #>Service.CountAsync(criteria, token);
 

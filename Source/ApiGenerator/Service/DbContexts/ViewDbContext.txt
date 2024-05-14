@@ -1,0 +1,99 @@
+﻿
+using Microsoft.EntityFrameworkCore;
+
+using Bridge.Service.Activity.Data;
+using Bridge.Service.Contact.Data;
+using Bridge.Service.Inventory.Data;
+using Bridge.Service.Setting.Data;
+
+namespace Bridge.Service;
+
+public class ViewDbContext : DbContext
+{
+    public ViewDbContext(DbContextOptions options) : base(options) { }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        ApplyConfigurations(builder);
+        ApplyNavigations(builder);
+
+        var decimalProperties = builder.Model
+            .GetEntityTypes()
+            .SelectMany(t => t.GetProperties())
+            .Where(p => (Nullable.GetUnderlyingType(p.ClrType) ?? p.ClrType) == typeof(decimal));
+
+        foreach (var property in decimalProperties)
+        {
+            property.SetPrecision(18);
+            property.SetScale(2);
+        }
+    }
+
+    private void ApplyNavigations(ModelBuilder builder)
+    {
+        // builder.Entity<UserEntity>().HasMany(e => e.Persons).WithOne(e => e.User).HasForeignKey(e => e.UserIdentifier).HasPrincipalKey(e => e.UserIdentifier);
+    }
+
+    private void ApplyConfigurations(ModelBuilder builder)
+    {
+        builder.ApplyConfiguration(new AccountingAnalysisConfiguration());
+        builder.ApplyConfiguration(new AnnualSummaryConfiguration());
+        builder.ApplyConfiguration(new EmploymentConfiguration());
+        builder.ApplyConfiguration(new FastInventoryAnalysisConfiguration());
+        builder.ApplyConfiguration(new FastShipmentAnalysisConfiguration());
+        builder.ApplyConfiguration(new FastShipmentAnalysisProductConfiguration());
+        builder.ApplyConfiguration(new InventoryAnalysisConfiguration());
+        builder.ApplyConfiguration(new JobDetailConfiguration());
+        builder.ApplyConfiguration(new LocationDetailConfiguration());
+        builder.ApplyConfiguration(new LocationHierarchyConfiguration());
+        builder.ApplyConfiguration(new LookupDetailConfiguration());
+        builder.ApplyConfiguration(new MembershipDetailConfiguration());
+        builder.ApplyConfiguration(new OrderDetailConfiguration());
+        builder.ApplyConfiguration(new OrderItemDetailConfiguration());
+        builder.ApplyConfiguration(new ProductDetailConfiguration());
+        builder.ApplyConfiguration(new ProductOnRentConfiguration());
+        builder.ApplyConfiguration(new ProductStatusConfiguration());
+        builder.ApplyConfiguration(new RentalSaleOrderDetailConfiguration());
+        builder.ApplyConfiguration(new RentalSummaryConfiguration());
+        builder.ApplyConfiguration(new SaleDetailConfiguration());
+        builder.ApplyConfiguration(new ShipmentAnalysisConfiguration());
+        builder.ApplyConfiguration(new ShipmentDetailConfiguration());
+        builder.ApplyConfiguration(new ShipmentPerCategoryConfiguration());
+        builder.ApplyConfiguration(new ShipmentPerProductConfiguration());
+        builder.ApplyConfiguration(new SiteDetailConfiguration());
+        builder.ApplyConfiguration(new UserRoleDetailConfiguration());
+        builder.ApplyConfiguration(new UtilizationConfiguration());
+    }
+
+    #region Database Tables
+
+        internal DbSet<AccountingAnalysisEntity> AccountingAnalysises { get; set; }
+        internal DbSet<AnnualSummaryEntity> AnnualSummaries { get; set; }
+        internal DbSet<EmploymentEntity> Employments { get; set; }
+        internal DbSet<FastInventoryAnalysisEntity> FastInventoryAnalysises { get; set; }
+        internal DbSet<FastShipmentAnalysisEntity> FastShipmentAnalysises { get; set; }
+        internal DbSet<FastShipmentAnalysisProductEntity> FastShipmentAnalysisProducts { get; set; }
+        internal DbSet<InventoryAnalysisEntity> InventoryAnalysises { get; set; }
+        internal DbSet<JobDetailEntity> JobDetails { get; set; }
+        internal DbSet<LocationDetailEntity> LocationDetails { get; set; }
+        internal DbSet<LocationHierarchyEntity> LocationHierarchies { get; set; }
+        internal DbSet<LookupDetailEntity> LookupDetails { get; set; }
+        internal DbSet<MembershipDetailEntity> MembershipDetails { get; set; }
+        internal DbSet<OrderDetailEntity> OrderDetails { get; set; }
+        internal DbSet<OrderItemDetailEntity> OrderItemDetails { get; set; }
+        internal DbSet<ProductDetailEntity> ProductDetails { get; set; }
+        internal DbSet<ProductOnRentEntity> ProductOnRents { get; set; }
+        internal DbSet<ProductStatusEntity> ProductStatuses { get; set; }
+        internal DbSet<RentalSaleOrderDetailEntity> RentalSaleOrderDetails { get; set; }
+        internal DbSet<RentalSummaryEntity> RentalSummaries { get; set; }
+        internal DbSet<SaleDetailEntity> SaleDetails { get; set; }
+        internal DbSet<ShipmentAnalysisEntity> ShipmentAnalysises { get; set; }
+        internal DbSet<ShipmentDetailEntity> ShipmentDetails { get; set; }
+        internal DbSet<ShipmentPerCategoryEntity> ShipmentPerCategories { get; set; }
+        internal DbSet<ShipmentPerProductEntity> ShipmentPerProducts { get; set; }
+        internal DbSet<SiteDetailEntity> SiteDetails { get; set; }
+        internal DbSet<UserRoleDetailEntity> UserRoleDetails { get; set; }
+        internal DbSet<UtilizationEntity> Utilizations { get; set; }
+
+    #endregion
+}

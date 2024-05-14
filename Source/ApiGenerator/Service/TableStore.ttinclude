@@ -39,7 +39,7 @@
 #>
 using Microsoft.EntityFrameworkCore;
 
-namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
+namespace <#= Platform #>.Service.<#= DomainToolkit #>.Data;
 
 public class <#= DomainEntity #>Store
 {

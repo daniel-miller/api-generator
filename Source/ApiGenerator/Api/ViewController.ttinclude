@@ -43,7 +43,7 @@
     if (DomainToolset != "-")
         apiGroup += ": " + DomainToolset;
 
-    var apiSpace = "ViewApiEndpoints." + DomainToolkit;
+    var apiSpace = "ViewApiEndpoints." + DomainToolkit + "Api";
     if (DomainToolset != "-")
         apiSpace += "." + DomainToolset;
     if (DomainEntity != "-")
@@ -54,7 +54,7 @@ using Microsoft.AspNetCore.Mvc;
 
 using <#= Platform #>.Contract;
 using <#= Platform #>.Contract.<#= DomainToolkit #>;
-using <#= Platform #>.Persistence.<#= DomainToolkit #>;
+using <#= Platform #>.Service.<#= DomainToolkit #>.Data;
 
 namespace <#= Platform #>.Api.<#= DomainToolkit #>;
 
@@ -75,7 +75,7 @@ public class <#= DomainEntity #>Controller : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>Model>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<<#= DomainEntity #>Model>>> GetList([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
-        var models = await _<#= entity #>Service.SearchAsync(criteria, token);
+        var models = await _<#= entity #>Service.ListAsync(criteria, token);
         
         var count = await _<#= entity #>Service.CountAsync(criteria, token);
 

@@ -7,21 +7,21 @@
 <#@ parameter type="System.String" name="Platform" #>
 <#@ parameter type="System.String" name="DatabaseSchema" #>
 <#@ parameter type="System.String" name="DatabaseTable" #>
-<#@ parameter type="System.String" name="DomainEntity" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
+<#@ parameter type="System.String" name="DomainEntity" #>
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
     
 #>
 using FluentValidation;
 
-namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
+using <#= Platform #>.Contract.<#= DomainToolkit #>;
 
-public class <#= DomainEntity #>EntityValidator : AbstractValidator<<#= DomainEntity #>Entity>
+namespace <#= Platform #>.Service.<#= DomainToolkit #>.Data;
+
+public class <#= DomainEntity #>CriteriaValidator : AbstractValidator<<#= DomainEntity #>Criteria>
 {
-    private readonly <#= DomainEntity #>Search _search;
-
-    public <#= DomainEntity #>EntityValidator(<#= DomainEntity #>Search search)
+    public <#= DomainEntity #>CriteriaValidator()
     {
-        _search = search;
+        
     }
 }

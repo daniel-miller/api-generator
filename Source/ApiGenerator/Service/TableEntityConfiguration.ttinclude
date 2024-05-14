@@ -23,7 +23,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
+namespace <#= Platform #>.Service.<#= DomainToolkit #>.Data;
 
 internal class <#= DomainEntity #>Configuration : IEntityTypeConfiguration<<#= DomainEntity #>Entity>
 {

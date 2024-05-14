@@ -76,7 +76,7 @@ namespace <#= Platform #>.Tests.Manual.<#= DomainToolkit #>
         public async Task Search()
         {
             var client = new <#= DomainEntity #>Client(_fixture.ApiClientFactory);
-            var criteria = new <#= DomainEntity #>Criteria();
+            var criteria = new <#= DomainEntity #>Criteria() { Take = 3 };
             var handles = await client.SearchAsync(criteria);
         }
     }

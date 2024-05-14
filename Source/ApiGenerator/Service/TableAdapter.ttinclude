@@ -23,10 +23,41 @@ using <#= Platform #>.Contract.<#= DomainToolkit #>;
 using ModuleHandle = Shift.Contract.Curriculums.ModuleHandle;
 
 <# } #>
-namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
+namespace <#= Platform #>.Service.<#= DomainToolkit #>.Data;
 
 public class <#= DomainEntity #>Adapter
 {
+    public void Copy(Modify<#= DomainEntity #> modify, <#= DomainEntity #>Entity entity)
+    {
+<#
+for (int i = 0; i < columns.Count; i++) 
+{
+    var column = columns[i];
+    if (primaryKey.Contains(column))
+        continue;
+
+    WriteLine("        entity." + column.ColumnName + " = modify." + column.ColumnName + ";");
+}
+#>    }
+
+    public <#= DomainEntity #>Entity ToEntity(Create<#= DomainEntity #> create)
+    {
+        var entity = new <#= DomainEntity #>Entity
+        {
+<#
+for (int i = 0; i < columns.Count; i++) 
+{
+    var column = columns[i];
+    Write("            " + column.ColumnName + " = create." + column.ColumnName);
+    if (i < columns.Count - 1)
+        WriteLine(",");
+}
+#>
+
+        };
+        return entity;
+    }
+
     public IEnumerable<<#= DomainEntity #>Model> ToModel(IEnumerable<<#= DomainEntity #>Entity> entities)
     {
         return entities.Select(ToModel);
@@ -38,8 +69,9 @@ public class <#= DomainEntity #>Adapter
         {
 <#
 for (int i = 0; i < columns.Count; i++) 
-{        
-    Write("            " + columns[i].ColumnName + " = entity." + columns[i].ColumnName);
+{  
+    var column = columns[i];
+    Write("            " + column.ColumnName + " = entity." + column.ColumnName);
     if (i < columns.Count - 1)
         WriteLine(",");
 }
@@ -56,7 +88,7 @@ for (int i = 0; i < columns.Count; i++)
 
     public <#= DomainEntity #>Handle ToHandle(<#= DomainEntity #>Entity entity)
     {
-        var response = new <#= DomainEntity #>Handle
+        var handle = new <#= DomainEntity #>Handle
         {
 <#
 for (int i = 0; i < primaryKey.Length; i++) 
@@ -69,6 +101,6 @@ for (int i = 0; i < primaryKey.Length; i++)
 #>
         };
 
-        return response;
+        return handle;
     }
 }

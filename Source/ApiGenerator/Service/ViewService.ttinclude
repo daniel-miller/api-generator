@@ -7,17 +7,19 @@
 <#@ parameter type="System.String" name="Platform" #>
 <#@ parameter type="System.String" name="DatabaseSchema" #>
 <#@ parameter type="System.String" name="DatabaseTable" #>
+<#@ parameter type="System.String" name="DatabasePrimaryKey" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
     
     var table = GetTable(DatabaseSchema, DatabaseTable);
+    var primaryKey = DatabasePrimaryKey.Split(new []{','});
 
     var pkParameters = "";
     var pkExpression = "";
     var pkProperties = "";
     var pkValues = "";
-    for (int i = 0; i < table.PrimaryKey.Length; i++)
+    for (int i = 0; i < primaryKey.Length; i++)
     {
         if (i > 0)
         {
@@ -26,7 +28,7 @@
             pkProperties += ", ";
             pkValues += ", ";
         }
-        var column = table.PrimaryKey[i];
+        var column = table.Columns[primaryKey[i]];
         var typeName = TypeNameOrAlias(column.DataType);
         pkParameters += typeName + " " + ConvertFirstLetterToLowercase(column.ColumnName);
         pkExpression += "x." + column.ColumnName + " == " + ConvertFirstLetterToLowercase(column.ColumnName);
@@ -39,11 +41,7 @@ using FluentValidation;
 
 using <#= Platform #>.Contract.<#= DomainToolkit #>;
 
-<# if (DomainEntity == "Module") { #>
-using ModuleHandle = Shift.Contract.Curriculums.ModuleHandle;
-
-<# } #>
-namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
+namespace <#= Platform #>.Service.<#= DomainToolkit #>.Data;
 
 public interface I<#= DomainEntity #>Service
 {
@@ -52,30 +50,21 @@ public interface I<#= DomainEntity #>Service
     Task<IEnumerable<<#= DomainEntity #>Handle>> SearchAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token);
 
     Task<int> CountAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token);
-
-    Task<bool> CreateAsync(Create<#= DomainEntity #> create, CancellationToken token);
-    Task<bool> DeleteAsync(<#= pkParameters #>, CancellationToken token);
-    Task<bool> ModifyAsync(<#= pkParameters #>, Modify<#= DomainEntity #> modify, CancellationToken token);
 }
 
 public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
 {
     private readonly <#= DomainEntity #>Search _search;
-    private readonly <#= DomainEntity #>Store _store;
 
     private readonly <#= DomainEntity #>Adapter _adapter = new <#= DomainEntity #>Adapter();
 
     private readonly IValidator<<#= DomainEntity #>Criteria> _criteriaValidator;
-    private readonly IValidator<<#= DomainEntity #>Entity> _entityValidator;
 
-    public <#= DomainEntity #>Service(<#= DomainEntity #>Search search, <#= DomainEntity #>Store store, 
-        IValidator<<#= DomainEntity #>Criteria> criteriaValidator, IValidator<<#= DomainEntity #>Entity> entityValidator)
+    public <#= DomainEntity #>Service(<#= DomainEntity #>Search search, IValidator<<#= DomainEntity #>Criteria> criteriaValidator)
     {
         _search = search;
-        _store = store;
 
         _criteriaValidator = criteriaValidator;
-        _entityValidator = entityValidator;
     }
 
     public async Task<<#= DomainEntity #>Model?> GetAsync(<#= pkParameters #>, CancellationToken token)
@@ -89,7 +78,7 @@ public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
     {
         await _criteriaValidator.ValidateAndThrowAsync(criteria, token);
 
-        var entities = await _search.SearchAsync(criteria, token);
+        var entities = await _search.ListAsync(criteria, token);
 
         return _adapter.ToModel(entities);
     }
@@ -98,7 +87,7 @@ public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
     {
         await _criteriaValidator.ValidateAndThrowAsync(criteria, token);
 
-        var entities = await _search.SearchAsync(criteria, token);
+        var entities = await _search.ListAsync(criteria, token);
 
         return _adapter.ToHandle(entities);
     }
@@ -106,33 +95,5 @@ public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
     public async Task<int> CountAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
         return await _search.CountAsync(criteria, token);
-    }
-
-    public async Task<bool> CreateAsync(Create<#= DomainEntity #> create, CancellationToken token)
-    {
-        var entity = _adapter.ToEntity(create);
-
-        await _entityValidator.ValidateAndThrowAsync(entity, token);
-
-        return await _store.InsertAsync(entity, token);
-    }
-
-    public async Task<bool> DeleteAsync(<#= pkParameters #>, CancellationToken token)
-    {
-        return await _store.DeleteAsync(<#= pkValues #>, token);
-    }
-
-    public async Task<bool> ModifyAsync(<#= pkParameters #>, Modify<#= DomainEntity #> modify, CancellationToken token)
-    {
-        var entity = await _search.GetAsync(<#= pkValues #>, token);
-
-        if (entity == null)
-            return false;
-
-        _adapter.Copy(modify, entity);
-
-        await _entityValidator.ValidateAndThrowAsync(entity, token);
-
-        return await _store.UpdateAsync(entity, token);
     }
 }

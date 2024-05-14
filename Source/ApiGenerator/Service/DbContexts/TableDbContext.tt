@@ -20,14 +20,14 @@ var toolkits = GetEndpoints()
     .OrderBy(x => x);
 
 foreach (var toolkit in toolkits)
-    WriteLine($"using {platform}.Persistence.{toolkit};");
+    WriteLine($"using {platform}.Service.{toolkit};");
 #>
 
-namespace Shift.Persistence;
+namespace <#= platform #>.Service;
 
-public class QueryDbContext : DbContext
+public class TableDbContext : DbContext
 {
-    public QueryDbContext(DbContextOptions options) : base(options) { }
+    public TableDbContext(DbContextOptions options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

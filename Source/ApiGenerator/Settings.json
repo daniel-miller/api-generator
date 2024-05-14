@@ -1,7 +1,7 @@
 ﻿{
     "CommonName": "Common",
     "DatabaseName": "DATABASE",
-    "EndpointTable": "databases.TApiEndpoint",
+    "EndpointTable": "dbo.TApiEndpoint",
     "OutputDirectory": "d:\\temp\\t4",
     "PlatformName": "PLATFORM"
 }

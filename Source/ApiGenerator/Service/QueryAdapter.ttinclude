@@ -19,11 +19,15 @@
 #>
 using <#= Platform #>.Contract.<#= DomainToolkit #>;
 
-namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
+<# if (DomainEntity == "Module") { #>
+using ModuleHandle = Shift.Contract.Curriculums.ModuleHandle;
+
+<# } #>
+namespace <#= Platform #>.Service.<#= DomainToolkit #>.Data;
 
 public class <#= DomainEntity #>Adapter
 {
-    public IEnumerable<<#= DomainEntity #>Model> ToListModel(IEnumerable<<#= DomainEntity #>Entity> entities)
+    public IEnumerable<<#= DomainEntity #>Model> ToModel(IEnumerable<<#= DomainEntity #>Entity> entities)
     {
         return entities.Select(ToModel);
     }
@@ -43,5 +47,28 @@ for (int i = 0; i < columns.Count; i++)
         };
 
         return model;
+    }
+
+    public IEnumerable<<#= DomainEntity #>Handle> ToHandle(IEnumerable<<#= DomainEntity #>Entity> entities)
+    {
+        return entities.Select(ToHandle);
+    }
+
+    public <#= DomainEntity #>Handle ToHandle(<#= DomainEntity #>Entity entity)
+    {
+        var response = new <#= DomainEntity #>Handle
+        {
+<#
+for (int i = 0; i < primaryKey.Length; i++) 
+{        
+    Write("            " + primaryKey[i].ColumnName + " = entity." + primaryKey[i].ColumnName);
+    if (i < primaryKey.Length - 1)
+        Write(",");
+    WriteLine("");
+}
+#>
+        };
+
+        return response;
     }
 }

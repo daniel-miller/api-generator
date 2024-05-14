@@ -5,6 +5,7 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ parameter type="System.String" name="Platform" #>
+<#@ parameter type="System.String" name="DatabaseObject" #>
 <#@ parameter type="System.String" name="DatabaseSchema" #>
 <#@ parameter type="System.String" name="DatabaseTable" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
@@ -30,29 +31,63 @@
         pkParameters += typeName + " " + ConvertFirstLetterToLowercase(column.ColumnName);
         pkExpression += "x." + column.ColumnName + " == " + ConvertFirstLetterToLowercase(column.ColumnName);
     }
+
+    // BuildQuery
+
+    var criteria = new List<DataColumn>();
+
+    for (int i = 0; i < table.PrimaryKey.Length; i++)
+        criteria.Add(table.PrimaryKey[i]);
+
+    foreach (DataColumn column in table.Columns)
+    {
+        if (column.ColumnName == "OrganizationIdentifier" || column.ColumnName == "OriginOrganization")
+            if (!criteria.Any(x => x.ColumnName == column.ColumnName))
+                criteria.Add(column);
+    }
+        
+    criteria.Sort(new EntityColumnComparer());
+
+    var BuildQuery = "";
+    for (int i = 0; i < criteria.Count; i++)
+    {
+        var column = criteria[i];
+        var typeName = TypeNameOrAlias(column.DataType);
+
+        BuildQuery += "\r\n";
+        BuildQuery += "        if (criteria." + column.ColumnName + " != null)\r\n";
+        BuildQuery += "            query = query.Where(x => x." + column.ColumnName + " == criteria." + column.ColumnName + ");\r\n";
+    }
 #>
 using Microsoft.EntityFrameworkCore;
 
 using <#= Platform #>.Contract.<#= DomainToolkit #>;
 
-namespace <#= Platform #>.Persistence.<#= DomainToolkit #>;
+namespace <#= Platform #>.Service.<#= DomainToolkit #>.Data;
 
 public class <#= DomainEntity #>Search
 {
-    private readonly ViewDbContext _db;
+    private readonly <#= DatabaseObject #>DbContext _tables;
 
-    public <#= DomainEntity #>Search(ViewDbContext db)
+    public <#= DomainEntity #>Search(<#= DatabaseObject #>DbContext tables)
     {
-        _db = db;
+        _tables = tables;
     }
 
-    internal async Task<int> CountAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
+    public async Task<int> CountAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
         return await BuildQuery(criteria)
             .CountAsync(token);
     }
 
-    internal async Task<IEnumerable<<#= DomainEntity #>Entity>> SearchAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
+    public async Task<<#= DomainEntity #>Entity?> GetAsync(<#= pkParameters #>, CancellationToken token)
+    {
+        return await _tables.<#= DomainEntityPlural #>
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => <#= pkExpression #>, token);
+    }
+
+    public async Task<IEnumerable<<#= DomainEntity #>Entity>> ListAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
         return await BuildQuery(criteria)
             .Skip((criteria.Page - 1) * criteria.Take)
@@ -62,10 +97,8 @@ public class <#= DomainEntity #>Search
 
     private IQueryable<<#= DomainEntity #>Entity> BuildQuery(<#= DomainEntity #>Criteria criteria)
     {
-        var query = _db.<#= DomainEntityPlural #>.AsNoTracking().AsQueryable();
-
-
-
+        var query = _tables.<#= DomainEntityPlural #>.AsNoTracking().AsQueryable();
+<#= BuildQuery #>
         return query;
     }
 }
