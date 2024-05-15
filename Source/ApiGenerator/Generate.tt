@@ -29,7 +29,7 @@
     CreateFolder(endpointFolder);
 
     GenerateClass(engine, session, null, $@"{project}\Contract\Endpoints\TableApiEndpoints.ttinclude", $@"{endpointFolder}\TableApiEndpoints.cs");
-    GenerateClass(engine, session, null, $@"{project}\Contract\Endpoints\QueryApiEndpoints.ttinclude", $@"{endpointFolder}\QueryApiEndpoints.cs");
+    GenerateClass(engine, session, null, $@"{project}\Contract\Endpoints\ProjectionApiEndpoints.ttinclude", $@"{endpointFolder}\ProjectionApiEndpoints.cs");
     GenerateClass(engine, session, null, $@"{project}\Contract\Endpoints\ViewApiEndpoints.ttinclude", $@"{endpointFolder}\ViewApiEndpoints.cs");
 
     foreach (var endpoint in endpoints)
@@ -37,19 +37,19 @@
         // Uncomment the code-generation function for each layer you want to generate.
 
         // Contract - Requests and Responses
-        // GenerateContractLayer(engine, session, endpoint, project, $@"{output}\{platform}.Contract");
+        GenerateContractLayer(engine, session, endpoint, project, $@"{output}\{platform}.Contract");
 
         // Service - Repositories (Entities and Adapters, Search and Store)
-        // GenerateServiceLayer(engine, session, endpoint, project, $@"{output}\{platform}.Service");
+        GenerateServiceLayer(engine, session, endpoint, project, $@"{output}\{platform}.Service");
 
         // SDK - Clients
-        // GenerateSdkLayer(engine, session, endpoint, project, $@"{output}\{platform}.Sdk");
+        GenerateSdkLayer(engine, session, endpoint, project, $@"{output}\{platform}.Sdk");
 
         // API - Controllers
-        // GenerateApiLayer(engine, session, endpoint, project, $@"{output}\{platform}.Api");
+        GenerateApiLayer(engine, session, endpoint, project, $@"{output}\{platform}.Api");
 
         // Unit Tests
-        // GenerateTestLayer(engine, session, endpoint, project, $@"{output}\{platform}.Test");
+        GenerateTestLayer(engine, session, endpoint, project, $@"{output}\{platform}.Test");
     }
 #>
 <#+
@@ -79,7 +79,7 @@
         GenerateClass(engine, session, endpoint, $@"{project}\Service\TableEntity.ttinclude", $@"{folder}\{endpoint.DomainEntity}Entity.cs");
         GenerateClass(engine, session, endpoint, $@"{project}\Service\TableEntityConfiguration.ttinclude", $@"{folder}\{endpoint.DomainEntity}EntityConfiguration.cs");
             
-        if (subtype == "Tables" || subtype == "Queries")
+        if (subtype == "Tables" || subtype == "Projections")
         {
             GenerateClass(engine, session, endpoint, $@"{project}\Service\{endpoint.DatabaseObject}Adapter.ttinclude", $@"{folder}\{endpoint.DomainEntity}Adapter.cs");
             GenerateClass(engine, session, endpoint, $@"{project}\Service\TableEntityValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}EntityValidator.cs");

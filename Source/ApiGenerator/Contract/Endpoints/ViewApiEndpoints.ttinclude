@@ -44,20 +44,28 @@ foreach (var toolkit in toolkits)
 
             var collection = $"{endpoint.EndpointBase}/{endpoint.EndpointCollection}";
             var item = $"/{endpoint.EndpointItem}";
-            var search = $"/search";
+            
+            var count = $"/queries/count";
+            var exists = $"/queries/exists";
+            var search = $"/queries/search";
 
             #>
 
                 public static partial class <#= entity #>
                 {
                     private const string _item = "<#= item #>";
-                    private const string _search = "<#= search #>";
+                    private const string _count = "<#= count #>";
+                    private const string _exists = "<#= exists #>";
+                    private const string _search = "<#= search #>";              
 
                     public const string Collection = "<#= collection #>";
 
-                    public const string Item = Collection + _item;     // get one existing entity
-                    public const string List = Collection;             // get all entities that match criteria
-                    public const string Search = Collection + _search; // get search results that match criteria
+                    public const string Get = Collection + _item; // get one specific entity
+                    public const string List = Collection;        // list entities that match criteria
+                    
+                    public const string Count = Collection + _count;           // count search results that match criteria
+                    public const string Exists = Collection + _exists + _item; // check for existence of one specific entity
+                    public const string Search = Collection + _search;         // get search results that match criteria
                 }
 <# } #>
             }

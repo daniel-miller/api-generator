@@ -80,10 +80,10 @@ public class <#= DomainEntity #>Controller : ControllerBase
         _<#= entity #>Service = <#= entity #>Service;
     }
 
-    [Authorize(<#= apiSpace #>.Item)]
-    [HttpGet(<#= apiSpace #>.Item)]
+    [Authorize(<#= apiSpace #>.Get)]
+    [HttpGet(<#= apiSpace #>.Get)]
     [ProducesResponseType(typeof(<#= DomainEntity #>Model), StatusCodes.Status200OK)]
-    public async Task<ActionResult<<#= DomainEntity #>Model>> GetItem(<#= pkParameters #>, CancellationToken token)
+    public async Task<ActionResult<<#= DomainEntity #>Model>> Get(<#= pkParameters #>, CancellationToken token)
     {
         var model = await _<#= entity #>Service.GetAsync(<#= pkProperties #>, token);
 
@@ -96,7 +96,7 @@ public class <#= DomainEntity #>Controller : ControllerBase
     [Authorize(<#= apiSpace #>.List)]
     [HttpGet(<#= apiSpace #>.List)]
     [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>Model>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>Model>>> GetList([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
+    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>Model>>> List([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
         var models = await _<#= entity #>Service.ListAsync(criteria, token);
 

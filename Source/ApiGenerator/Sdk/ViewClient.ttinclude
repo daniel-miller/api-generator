@@ -82,22 +82,22 @@ namespace <#= Platform #>.Sdk.<#= DomainToolkit #>
 
         // Asynchronous
 
-        public async Task<<#= DomainEntity #>Model> GetItemAsync(<#= pkParameters #>)
-            => await _sdk.GetItem<<#= DomainEntity #>Model>(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, <#= pkProperties #>);
+        public async Task<<#= DomainEntity #>Model> GetAsync(<#= pkParameters #>)
+            => await _sdk.Get<<#= DomainEntity #>Model>(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, <#= pkProperties #>);
 
-        public async Task<IEnumerable<<#= DomainEntity #>Model>> GetListAsync(<#= DomainEntity #>Criteria criteria)
-            => await _sdk.GetList<<#= DomainEntity #>Model>(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, _sdk.ConvertToDictionary(criteria));
+        public async Task<IEnumerable<<#= DomainEntity #>Model>> ListAsync(<#= DomainEntity #>Criteria criteria)
+            => await _sdk.List<<#= DomainEntity #>Model>(<#= ApiEndpoints #>.<#= apiSpace #>.Collection, _sdk.ToDictionary(criteria));
         
         public async Task<IEnumerable<<#= DomainEntity #>Handle>> SearchAsync(<#= DomainEntity #>Criteria criteria)
-            => await _sdk.GetList<<#= DomainEntity #>Handle>(<#= ApiEndpoints #>.<#= apiSpace #>.Search, _sdk.ConvertToDictionary(criteria));
+            => await _sdk.Search<<#= DomainEntity #>Handle>(<#= ApiEndpoints #>.<#= apiSpace #>.Search, _sdk.ToDictionary(criteria));
 
         // Synchronous
 
-        public <#= DomainEntity #>Model GetItem(<#= pkParameters #>)
-            => Task.Run(() => GetItemAsync(<#= pkProperties #>)).GetAwaiter().GetResult();
+        public <#= DomainEntity #>Model Get(<#= pkParameters #>)
+            => Task.Run(() => GetAsync(<#= pkProperties #>)).GetAwaiter().GetResult();
 
-        public IEnumerable<<#= DomainEntity #>Model> GetList(<#= DomainEntity #>Criteria criteria)
-            => Task.Run(() => GetListAsync(criteria)).GetAwaiter().GetResult();
+        public IEnumerable<<#= DomainEntity #>Model> List(<#= DomainEntity #>Criteria criteria)
+            => Task.Run(() => ListAsync(criteria)).GetAwaiter().GetResult();
         
         public IEnumerable<<#= DomainEntity #>Handle> Search(<#= DomainEntity #>Criteria criteria)
             => Task.Run(() => SearchAsync(criteria)).GetAwaiter().GetResult();
