@@ -55,11 +55,6 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Generate.txt</LastGenOutput>
     </None>
-    <None Update="Generate.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Generate.tt</DependentUpon>
-    </None>
     <None Update="Service\DbContexts\TableDbContext.txt">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
