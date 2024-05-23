@@ -1,72 +1,48 @@
 ﻿<#@ template debug="false" hostspecific="false" language="C#" #>
 <#@ output extension=".txt" #>
 <#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ import namespace="System.Data" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="Common" #>
-<#@ parameter type="System.String" name="Platform" #>
-<#@ parameter type="System.String" name="DatabaseSchema" #>
-<#@ parameter type="System.String" name="DatabaseTable" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
-<#@ parameter type="System.String" name="DomainToolset" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
-<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+<#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
+<#@ import namespace="ApiGenerator.Utility" #><#
     
-    var table = GetTable(DatabaseSchema, DatabaseTable);
-    
-    string DomainEntityPlural = PluralizeNoun(DomainEntity);
-    string entity = ConvertFirstLetterToLowercase(DomainEntity);
+    var platform = Settings.PlatformName;
+    var database = new Database();
+    var endpoints = database.GetEndpoints();
+    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainEntity);
+    var entities = Inflector.PluralizeNoun(DomainEntity);
 
-    var pkParameters = "";
-    var pkExpression = "";
-    var pkProperties = "";
-    var pkValuesForCreate = "";
-    var pkValuesForGet = "";
-    var pkValuesForModify = "";
-    for (int i = 0; i < table.PrimaryKey.Length; i++)
-    {
-        if (i > 0)
-        {
-            pkParameters += ", ";
-            pkExpression += " && ";
-            pkProperties += ", ";
-            pkValuesForGet += ", ";
-        }
-        var column = table.PrimaryKey[i];
-        var typeName = TypeNameOrAlias(column.DataType);
-        pkParameters += "[FromRoute] " + typeName + " " + ConvertFirstLetterToLowercase(column.ColumnName);
-        pkExpression += "x." + column.ColumnName + " == " + ConvertFirstLetterToLowercase(column.ColumnName);
-        pkProperties += ConvertFirstLetterToLowercase(column.ColumnName);
-        pkValuesForCreate += column.ColumnName + " {create." + column.ColumnName + "}";
-        pkValuesForGet += "create." + column.ColumnName;
-        pkValuesForModify += column.ColumnName + " {" + ConvertFirstLetterToLowercase(column.ColumnName) + "}";
-    }
+    var generator = new Generator(endpoint, true);
+    var parameters = generator.PrimaryKeyMethodParameters();
+    var arguments = generator.PrimaryKeyMethodArguments();
+    var expression = generator.PrimaryKeyEqualityExpression();
+    var values = generator.PrimaryKeyPropertyValues();
+    var pkValuesForCreate = generator.PrimaryKeyPropertyValuesForCreate();
+    var pkValuesForGet = generator.PrimaryKeyPropertyValuesForGet();
+    var pkValuesForModify = generator.PrimaryKeyPropertyValuesForModify();
 
-    var apiGroup = DomainToolkit;
-    if (DomainToolset != "-")
-        apiGroup += ": " + DomainToolset;
+    var apiGroup = generator.ApiGroup();
+    var apiSpace = generator.ApiCollection();
+    var entity = generator.EntityVariable();
 
-    var apiSpace = "TableApiEndpoints." + DomainToolkit + "Api";
-    if (DomainToolset != "-")
-        apiSpace += "." + DomainToolset;
-    if (DomainEntity != "-")
-        apiSpace += "." + DomainEntity;
 #>
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-using <#= Common #>.Contract;
-
-using <#= Platform #>.Contract;
-using <#= Platform #>.Contract.<#= DomainToolkit #>;
-using <#= Platform #>.Service.<#= DomainToolkit #>.Data;
+using <#= platform #>.Contract;
+using <#= platform #>.Contract.<#= DomainToolkit #>;
+using <#= platform #>.Service.<#= DomainToolkit #>.Data;
 
 <# if (DomainEntity == "Module") { #>
 using ModuleHandle = Shift.Contract.Curriculums.ModuleHandle;
 
 <# } #>
-namespace <#= Platform #>.Api.<#= DomainToolkit #>;
+namespace <#= platform #>.Api.<#= DomainToolkit #>;
 
 [ApiController]
 [ApiExplorerSettings(GroupName = "<#= apiGroup #>")]
@@ -83,9 +59,9 @@ public class <#= DomainEntity #>Controller : ControllerBase
     [Authorize(<#= apiSpace #>.Get)]
     [HttpGet(<#= apiSpace #>.Get)]
     [ProducesResponseType(typeof(<#= DomainEntity #>Model), StatusCodes.Status200OK)]
-    public async Task<ActionResult<<#= DomainEntity #>Model>> Get(<#= pkParameters #>, CancellationToken token)
+    public async Task<ActionResult<<#= DomainEntity #>Model>> Get(<#= parameters #>, CancellationToken token)
     {
-        var model = await _<#= entity #>Service.GetAsync(<#= pkProperties #>, token);
+        var model = await _<#= entity #>Service.GetAsync(<#= arguments #>, token);
 
         if (model == null)
             return NotFound();
@@ -107,24 +83,10 @@ public class <#= DomainEntity #>Controller : ControllerBase
         return Ok(models);
     }
 
-    [Authorize(<#= apiSpace #>.Search)]
-    [HttpGet(<#= apiSpace #>.Search)]
-    [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>Handle>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>Handle>>> Search([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
-    {
-        var handles = await _<#= entity #>Service.SearchAsync(criteria, token);
-
-        var count = await _<#= entity #>Service.CountAsync(criteria, token);
-
-        Response.AddPagination(criteria.Page, criteria.Take, handles.Count(), count);
-
-        return Ok(handles);
-    }
-
     [Authorize(<#= apiSpace #>.Create)]
     [HttpPost(<#= apiSpace #>.Create)]
     [ProducesResponseType(typeof(<#= DomainEntity #>Model), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ValidationFailureResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationFailure), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<<#= DomainEntity #>Model>> Create([FromBody] Create<#= DomainEntity #> create, CancellationToken token)
     {
         var created = await _<#= entity #>Service.CreateAsync(create, token);
@@ -137,13 +99,33 @@ public class <#= DomainEntity #>Controller : ControllerBase
         return CreatedAtAction(nameof(Create), model);
     }
 
+    [Authorize(<#= apiSpace #>.Modify)]
+    [HttpPut(<#= apiSpace #>.Modify)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ValidationFailure), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Modify(<#= parameters #>, [FromBody] Modify<#= DomainEntity #> modify, CancellationToken token)
+    {
+        var model = await _<#= entity #>Service.GetAsync(<#= arguments #>, token);
+
+        if (model is null)
+            return NotFound($"<#= DomainEntity #> not found: <#= pkValuesForModify #>. You cannot modify an object that is not in the database.");
+
+        var modified = await _<#= entity #>Service.ModifyAsync(<#= arguments #>, modify, token);
+
+        if (!modified)
+            return NotFound();
+        
+        return Ok();
+    }
+
     [Authorize(<#= apiSpace #>.Delete)]
     [HttpDelete(<#= apiSpace #>.Delete)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete(<#= pkParameters #>, CancellationToken token)
+    public async Task<IActionResult> Delete(<#= parameters #>, CancellationToken token)
     {
-        var deleted = await _<#= entity #>Service.DeleteAsync(<#= pkProperties #>, token);
+        var deleted = await _<#= entity #>Service.DeleteAsync(<#= arguments #>, token);
         
         if (!deleted)
             return NotFound();
@@ -151,23 +133,37 @@ public class <#= DomainEntity #>Controller : ControllerBase
         return Ok();
     }
 
-    [Authorize(<#= apiSpace #>.Modify)]
-    [HttpPut(<#= apiSpace #>.Modify)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ValidationFailureResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Modify(<#= pkParameters #>, [FromBody] Modify<#= DomainEntity #> modify, CancellationToken token)
+    [Authorize(<#= apiSpace #>.Count)]
+    [HttpGet(<#= apiSpace #>.Count)]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    public async Task<ActionResult<int>> Count([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
-        var model = await _<#= entity #>Service.GetAsync(<#= pkProperties #>, token);
+        var count = await _<#= entity #>Service.CountAsync(criteria, token);
 
-        if (model is null)
-            return NotFound($"<#= DomainEntity #> not found: <#= pkValuesForModify #>. You cannot modify an object that is not in the database.");
+        return Ok(count);
+    }
 
-        var modified = await _<#= entity #>Service.ModifyAsync(<#= pkProperties #>, modify, token);
+    [Authorize(<#= apiSpace #>.Exists)]
+    [HttpGet(<#= apiSpace #>.Exists)]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    public async Task<ActionResult<bool>> Exists(<#= parameters #>, CancellationToken token)
+    {
+        var exists = await _<#= entity #>Service.ExistsAsync(<#= arguments #>, token);
 
-        if (!modified)
-            return NotFound();
-        
-        return Ok();
+        return Ok(exists);
+    }
+
+    [Authorize(<#= apiSpace #>.Search)]
+    [HttpGet(<#= apiSpace #>.Search)]
+    [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>Handle>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>Handle>>> Search([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
+    {
+        var handles = await _<#= entity #>Service.SearchAsync(criteria, token);
+
+        var count = await _<#= entity #>Service.CountAsync(criteria, token);
+
+        Response.AddPagination(criteria.Page, criteria.Take, handles.Count(), count);
+
+        return Ok(handles);
     }
 }

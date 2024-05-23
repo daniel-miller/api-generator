@@ -1,29 +1,35 @@
 ﻿<#@ template debug="false" hostspecific="false" language="C#" #>
 <#@ output extension=".txt" #>
 <#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ import namespace="System.Data" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="Common" #>
-<#@ parameter type="System.String" name="Platform" #>
-<#@ parameter type="System.String" name="DatabaseSchema" #>
-<#@ parameter type="System.String" name="DatabaseTable" #>
-<#@ parameter type="System.String" name="DomainEntity" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
-<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
+<#@ import namespace="ApiGenerator.Utility" #><#
     
-    var table = GetTable(DatabaseSchema, DatabaseTable);
-    var columns = table.Columns;
-    var primaryKey = table.PrimaryKey;
+    var platform = Settings.PlatformName;
+    var database = new Database();
+    var endpoints = database.GetEndpoints();
+    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainEntity);
+
+    var generator = new Generator(endpoint);
+    var declarations = generator.PropertyDeclarations(PropertyType.All, 1);
+    var primaryKey = generator.PrimaryKey();
+
+    var columns = database.GetTable(endpoint.DatabaseSchema, endpoint.DatabaseTable).Columns;
 
 #>
-using <#= Platform #>.Contract.<#= DomainToolkit #>;
+using <#= platform #>.Contract.<#= DomainToolkit #>;
 
 <# if (DomainEntity == "Module") { #>
 using ModuleHandle = Shift.Contract.Curriculums.ModuleHandle;
 
 <# } #>
-namespace <#= Platform #>.Service.<#= DomainToolkit #>.Data;
+namespace <#= platform #>.Service.<#= DomainToolkit #>.Data;
 
 public class <#= DomainEntity #>Adapter
 {
@@ -33,7 +39,7 @@ public class <#= DomainEntity #>Adapter
 for (int i = 0; i < columns.Count; i++) 
 {
     var column = columns[i];
-    if (primaryKey.Contains(column))
+    if (primaryKey.Contains(column.ColumnName))
         continue;
 
     WriteLine("        entity." + column.ColumnName + " = modify." + column.ColumnName + ";");
@@ -93,7 +99,7 @@ for (int i = 0; i < columns.Count; i++)
 <#
 for (int i = 0; i < primaryKey.Length; i++) 
 {        
-    Write("            " + primaryKey[i].ColumnName + " = entity." + primaryKey[i].ColumnName);
+    Write("            " + primaryKey[i] + " = entity." + primaryKey[i]);
     if (i < primaryKey.Length - 1)
         Write(",");
     WriteLine("");

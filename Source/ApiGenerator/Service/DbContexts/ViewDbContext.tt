@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 
 <#
 var settings = GetSettings();
-var platform = settings.PlatformName;
+var platform = Settings.PlatformName;;
 
 var toolkits = GetEndpoints()
     .Where(x => x.DatabaseObject == "View")

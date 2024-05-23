@@ -1,66 +1,43 @@
 ﻿<#@ template debug="false" hostspecific="false" language="C#" #>
 <#@ output extension=".txt" #>
 <#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ import namespace="System.Data" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="Common" #>
-<#@ parameter type="System.String" name="Platform" #>
-<#@ parameter type="System.String" name="DatabaseObject" #>
-<#@ parameter type="System.String" name="DatabaseSchema" #>
-<#@ parameter type="System.String" name="DatabaseTable" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
-<#@ parameter type="System.String" name="DomainToolset" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
-<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+<#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
+<#@ import namespace="ApiGenerator.Utility" #><#
     
-    var table = GetTable(DatabaseSchema, DatabaseTable);
-    
-    string ApiEndpoints = DatabaseObject + "ApiEndpoints";
-    string DomainEntityPlural = PluralizeNoun(DomainEntity);
-    string entity = ConvertFirstLetterToLowercase(DomainEntity);
+    var platform = Settings.PlatformName;
+    var database = new Database();
+    var endpoints = database.GetEndpoints();
+    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainEntity);
+    var entities = Inflector.PluralizeNoun(DomainEntity);
 
-    var pkParameters = "";
-    var pkExpression = "";
-    var pkProperties = "";
-    var pkValuesForCreate = "";
-    var pkValuesForUpdate = "";
-    for (int i = 0; i < table.PrimaryKey.Length; i++)
-    {
-        if (i > 0)
-        {
-            pkParameters += ", ";
-            pkExpression += " && ";
-            pkProperties += ", ";
-        }
-        var column = table.PrimaryKey[i];
-        var typeName = TypeNameOrAlias(column.DataType);
-        pkParameters += typeName + " " + ConvertFirstLetterToLowercase(column.ColumnName);
-        pkExpression += "x." + column.ColumnName + " == " + ConvertFirstLetterToLowercase(column.ColumnName);
-        pkProperties += ConvertFirstLetterToLowercase(column.ColumnName);
-        pkValuesForCreate += column.ColumnName + " {entity." + column.ColumnName + "}";
-        pkValuesForUpdate += column.ColumnName + " {" + ConvertFirstLetterToLowercase(column.ColumnName) + "}";
-    }
+    var generator = new Generator(endpoint, true);
+    var parameters = generator.PrimaryKeyMethodParameters();
+    var arguments = generator.PrimaryKeyMethodArguments();
+    var expression = generator.PrimaryKeyEqualityExpression();
+    var values = generator.PrimaryKeyPropertyValues();
+    var pkValuesForCreate = generator.PrimaryKeyPropertyValuesForCreate();
+    var pkValuesForGet = generator.PrimaryKeyPropertyValuesForGet();
+    var pkValuesForModify = generator.PrimaryKeyPropertyValuesForModify();
 
-    var apiGroup = DomainToolkit;
-    if (DomainToolset != "-")
-        apiGroup += ": " + DomainToolset;
+    var apiGroup = generator.ApiGroup();
+    var apiSpace = generator.ApiCollection();
+    var entity = generator.EntityVariable();
 
-    var apiSpace = DomainToolkit;
-    if (DomainToolset != "-")
-        apiSpace += "." + DomainToolset;
-    if (DomainEntity != "-")
-        apiSpace += "." + DomainEntity;
 #>
-using <#= Platform #>.Contract.<#= DomainToolkit #>;
-
-using <#= Platform #>.Sdk.<#= DomainToolkit #>;
+using <#= platform #>.Contract.<#= DomainToolkit #>;
 
 <# if (DomainEntity == "Module") { #>
 using ModuleHandle = Shift.Contract.Curriculums.ModuleHandle;
 
 <# } #>
-namespace <#= Platform #>.Tests.Manual.<#= DomainToolkit #>
+namespace <#= platform #>.Test.Manual.<#= DomainToolkit #>
 {
     [Trait("Category", "SDK")]
     public class <#= DomainEntity #>ClientTests : IClassFixture<ApiClientFixture>

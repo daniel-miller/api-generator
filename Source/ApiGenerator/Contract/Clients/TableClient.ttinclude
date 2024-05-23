@@ -1,0 +1,102 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".txt" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ import namespace="System.Data" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ parameter type="System.String" name="DomainToolkit" #>
+<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
+<#@ import namespace="ApiGenerator.Utility" #><#
+    
+    var platform = Settings.PlatformName;
+    var database = new Database();
+    var endpoints = database.GetEndpoints();
+    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainEntity);
+    
+    var generator = new Generator(endpoint);
+    var pkParameters = generator.PrimaryKeyMethodParameters();
+    var pkArguments = generator.PrimaryKeyMethodArguments();
+
+    var apiRoute = "TableEndpoints." + generator.ApiCollection();
+
+#>
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+using Common;
+
+namespace <#= platform #>.Contract.<#= DomainToolkit #>
+{
+    public class <#= DomainEntity #>Client
+    {
+        private readonly SdkClient _sdk;
+
+        public <#= DomainEntity #>Client(IApiClientFactory factory)
+            => _sdk = new SdkClient(factory);
+
+        public Pagination GetPagination()
+            => _sdk.Pagination;
+
+        // Asynchronous
+
+        public async Task<<#= DomainEntity #>Model> GetAsync(<#= pkParameters #>)
+            => await _sdk.Get<<#= DomainEntity #>Model>(<#= apiRoute #>.Collection, <#= pkArguments #>);
+
+        public async Task<IEnumerable<<#= DomainEntity #>Model>> ListAsync(<#= DomainEntity #>Criteria criteria)
+            => await _sdk.List<<#= DomainEntity #>Model>(<#= apiRoute #>.Collection, _sdk.ToDictionary(criteria));
+        
+        public async Task<IEnumerable<<#= DomainEntity #>Model>> ExportAsync(<#= DomainEntity #>Criteria criteria)
+            => await _sdk.Export<<#= DomainEntity #>Model>(<#= apiRoute #>.Collection, _sdk.ToDictionary(criteria));
+
+        public async Task<<#= DomainEntity #>Model> CreateAsync(Create<#= DomainEntity #> request)
+            => await _sdk.Create<<#= DomainEntity #>Model>(<#= apiRoute #>.Collection, request);
+            
+        public async Task ModifyAsync(Modify<#= DomainEntity #> request, <#= pkParameters #>)
+            => await _sdk.Modify(<#= apiRoute #>.Collection, <#= pkArguments #>, request);
+
+        public async Task DeleteAsync(<#= pkParameters #>)
+            => await _sdk.Delete(<#= apiRoute #>.Collection, <#= pkArguments #>);
+
+        public async Task<int> CountAsync(<#= DomainEntity #>Criteria criteria)
+            => await _sdk.Count(<#= apiRoute #>.Count, _sdk.ToDictionary(criteria));
+
+        public async Task<bool> ExistsAsync(<#= pkParameters #>)
+            => await _sdk.Exists(<#= apiRoute #>.Collection, <#= pkArguments #>);
+
+        public async Task<IEnumerable<<#= DomainEntity #>Handle>> SearchAsync(<#= DomainEntity #>Criteria criteria)
+            => await _sdk.Search<<#= DomainEntity #>Handle>(<#= apiRoute #>.Search, _sdk.ToDictionary(criteria));
+
+        // Synchronous
+
+        public <#= DomainEntity #>Model Get(<#= pkParameters #>)
+            => Task.Run(() => GetAsync(<#= pkArguments #>)).GetAwaiter().GetResult();
+
+        public IEnumerable<<#= DomainEntity #>Model> List(<#= DomainEntity #>Criteria criteria)
+            => Task.Run(() => ListAsync(criteria)).GetAwaiter().GetResult();
+        
+        public IEnumerable<<#= DomainEntity #>Model> Export(<#= DomainEntity #>Criteria criteria)
+            => Task.Run(() => ExportAsync(criteria)).GetAwaiter().GetResult();
+
+        public <#= DomainEntity #>Model Create(Create<#= DomainEntity #> request)
+            => Task.Run(() => CreateAsync(request)).GetAwaiter().GetResult();
+
+        public void Modify(Modify<#= DomainEntity #> request, <#= pkParameters #>)
+            => Task.Run(() => ModifyAsync(request, <#= pkArguments #>)).GetAwaiter().GetResult();
+
+        public void Delete(<#= pkParameters #>)
+            => Task.Run(() => DeleteAsync(<#= pkArguments #>)).GetAwaiter().GetResult();
+
+        public int Count(<#= DomainEntity #>Criteria criteria)
+            => Task.Run(() => CountAsync(criteria)).GetAwaiter().GetResult();
+
+        public bool Exists(<#= pkParameters #>)
+            => Task.Run(() => ExistsAsync(<#= pkArguments #>)).GetAwaiter().GetResult();
+
+        public IEnumerable<<#= DomainEntity #>Handle> Search(<#= DomainEntity #>Criteria criteria)
+            => Task.Run(() => SearchAsync(criteria)).GetAwaiter().GetResult();
+    }   
+}

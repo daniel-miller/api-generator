@@ -1,2 +1,9 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("API Generator");
+﻿namespace ApiGenerator2
+{
+    internal class Program
+    {
+        static void Main()
+        {
+        }
+    }
+}

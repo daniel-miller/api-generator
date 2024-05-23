@@ -1,62 +1,48 @@
 ﻿<#@ template debug="false" hostspecific="false" language="C#" #>
 <#@ output extension=".txt" #>
 <#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ import namespace="System.Data" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="Platform" #>
-<#@ parameter type="System.String" name="DatabaseSchema" #>
-<#@ parameter type="System.String" name="DatabaseTable" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
-<#@ parameter type="System.String" name="DomainToolset" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
-<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+<#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
+<#@ import namespace="ApiGenerator.Utility" #><#
     
-    var table = GetTable(DatabaseSchema, DatabaseTable);
-    
-    string DomainEntityPlural = PluralizeNoun(DomainEntity);
-    string entity = ConvertFirstLetterToLowercase(DomainEntity);
+    var platform = Settings.PlatformName;
+    var database = new Database();
+    var endpoints = database.GetEndpoints();
+    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainEntity);
+    var entities = Inflector.PluralizeNoun(DomainEntity);
 
-    var pkParameters = "";
-    var pkExpression = "";
-    var pkProperties = "";
-    var pkValuesForCreate = "";
-    var pkValuesForUpdate = "";
-    for (int i = 0; i < table.PrimaryKey.Length; i++)
-    {
-        if (i > 0)
-        {
-            pkParameters += ", ";
-            pkExpression += " && ";
-            pkProperties += ", ";
-        }
-        var column = table.PrimaryKey[i];
-        var typeName = TypeNameOrAlias(column.DataType);
-        pkParameters += "[FromRoute] " + typeName + " " + ConvertFirstLetterToLowercase(column.ColumnName);
-        pkExpression += "x." + column.ColumnName + " == " + ConvertFirstLetterToLowercase(column.ColumnName);
-        pkProperties += ConvertFirstLetterToLowercase(column.ColumnName);
-        pkValuesForCreate += column.ColumnName + " {entity." + column.ColumnName + "}";
-        pkValuesForUpdate += column.ColumnName + " {" + ConvertFirstLetterToLowercase(column.ColumnName) + "}";
-    }
+    var generator = new Generator(endpoint, true);
+    var parameters = generator.PrimaryKeyMethodParameters();
+    var arguments = generator.PrimaryKeyMethodArguments();
+    var expression = generator.PrimaryKeyEqualityExpression();
+    var values = generator.PrimaryKeyPropertyValues();
+    var pkValuesForCreate = generator.PrimaryKeyPropertyValuesForCreate();
+    var pkValuesForGet = generator.PrimaryKeyPropertyValuesForGet();
+    var pkValuesForModify = generator.PrimaryKeyPropertyValuesForModify();
 
-    var apiGroup = DomainToolkit;
-    if (DomainToolset != "-")
-        apiGroup += ": " + DomainToolset;
+    var apiGroup = generator.ApiGroup();
+    var apiSpace = generator.ApiCollection();
+    var entity = generator.EntityVariable();
 
-    var apiSpace = "QueryApiEndpoints." + DomainToolkit + "Api";
-    if (DomainToolset != "-")
-        apiSpace += "." + DomainToolset;
-    if (DomainEntity != "-")
-        apiSpace += "." + DomainEntity;
 #>
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-using <#= Platform #>.Contract;
-using <#= Platform #>.Contract.<#= DomainToolkit #>;
-using <#= Platform #>.Persistence.<#= DomainToolkit #>;
+using <#= platform #>.Contract;
+using <#= platform #>.Contract.<#= DomainToolkit #>;
+using <#= platform #>.Service.<#= DomainToolkit #>.State;
 
-namespace <#= Platform #>.Api.<#= DomainToolkit #>;
+<# if (DomainEntity == "Module") { #>
+using ModuleHandle = Shift.Contract.Curriculums.ModuleHandle;
+
+<# } #>
+namespace <#= platform #>.Api.<#= DomainToolkit #>;
 
 [ApiController]
 [ApiExplorerSettings(GroupName = "<#= apiGroup #>")]
@@ -70,18 +56,51 @@ public class <#= DomainEntity #>Controller : ControllerBase
         _<#= entity #>Service = <#= entity #>Service;
     }
 
+    [Authorize(<#= apiSpace #>.Get)]
+    [HttpGet(<#= apiSpace #>.Get)]
+    [ProducesResponseType(typeof(<#= DomainEntity #>Model), StatusCodes.Status200OK)]
+    public async Task<ActionResult<<#= DomainEntity #>Model>> Get(<#= parameters #>, CancellationToken token)
+    {
+        var model = await _<#= entity #>Service.GetAsync(<#= arguments #>, token);
+
+        if (model == null)
+            return NotFound();
+
+        return Ok(model);
+    }
+
     [Authorize(<#= apiSpace #>.List)]
     [HttpGet(<#= apiSpace #>.List)]
     [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>Model>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>Model>>> GetList([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
+    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>Model>>> List([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
         var models = await _<#= entity #>Service.ListAsync(criteria, token);
-        
+
         var count = await _<#= entity #>Service.CountAsync(criteria, token);
 
         Response.AddPagination(criteria.Page, criteria.Take, models.Count(), count);
 
         return Ok(models);
+    }
+
+    [Authorize(<#= apiSpace #>.Count)]
+    [HttpGet(<#= apiSpace #>.Count)]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    public async Task<ActionResult<int>> Count([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
+    {
+        var count = await _<#= entity #>Service.CountAsync(criteria, token);
+
+        return Ok(count);
+    }
+
+    [Authorize(<#= apiSpace #>.Exists)]
+    [HttpGet(<#= apiSpace #>.Exists)]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    public async Task<ActionResult<bool>> Exists(<#= parameters #>, CancellationToken token)
+    {
+        var exists = await _<#= entity #>Service.ExistsAsync(<#= arguments #>, token);
+
+        return Ok(exists);
     }
 
     [Authorize(<#= apiSpace #>.Search)]

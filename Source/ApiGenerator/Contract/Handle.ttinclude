@@ -1,36 +1,31 @@
 ﻿<#@ template debug="false" hostspecific="false" language="C#" #>
 <#@ output extension=".txt" #>
 <#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ import namespace="System.Data" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="Platform" #>
-<#@ parameter type="System.String" name="DatabaseSchema" #>
-<#@ parameter type="System.String" name="DatabaseTable" #>
-<#@ parameter type="System.String" name="DomainEntity" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
-<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
+<#@ import namespace="ApiGenerator.Utility" #><#
     
-    var table = GetTable(DatabaseSchema, DatabaseTable);
+    var platform = Settings.PlatformName;
+    var database = new Database();
+    var endpoints = database.GetEndpoints();
+    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainEntity);
 
-    var pkProperties = "";
-    for (int i = 0; i < table.PrimaryKey.Length; i++)
-    {
-        var column = table.PrimaryKey[i];
-        var typeName = TypeNameOrAlias(column.DataType);
-        pkProperties += "        public " + typeName + " " + column.ColumnName + " { get; set; }";
-
-        if (i != table.PrimaryKey.Length - 1)
-            pkProperties += "\r\n";
-    }
+    var generator = new Generator(endpoint);
+    var declarations = generator.PropertyDeclarations(PropertyType.OnlyPrimaryKey);
 
 #>
 using System;
 
-namespace <#= Platform #>.Contract.<#= DomainToolkit #>
+namespace <#= platform #>.Contract.<#= DomainToolkit #>
 {
     public partial class <#= DomainEntity #>Handle
     {
-<#= pkProperties #>
+<#= declarations #>
     }
 }

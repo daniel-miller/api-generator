@@ -4,26 +4,25 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="Platform" #>
-<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+<#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
+<#@ import namespace="ApiGenerator.Utility" #><#
     
+    var platform = Settings.PlatformName;
+    var database = new Database();
+
     var all = new List<string>();
 
-    var endpoints = GetEndpoints().Where(x => x.DatabaseObject == "View");
+    var endpoints = database.GetEndpoints("Projection");
 
-    var toolkits = endpoints.Select(x => x.DomainToolkit)
-        .Distinct().OrderBy(x => x).ToList();
+    var toolkits = endpoints.GetToolkits();
 #>
-namespace <#= Platform #>.Contract
+namespace <#= platform #>.Contract
 {
-    public static partial class ViewApiEndpoints
+    public static partial class ProjectionEndpoints
     { <# 
 foreach (var toolkit in toolkits) 
 { 
-    var toolsets = endpoints
-        .Where(x => x.DomainToolkit == toolkit)
-        .Select(x => x.DomainToolset)
-        .Distinct().OrderBy(x => x).ToList();
+    var toolsets = endpoints.GetToolsets(toolkit);
 #>
 
         public static partial class <#= toolkit #>Api
@@ -33,18 +32,16 @@ foreach (var toolkit in toolkits)
 
             public static partial class <#= toolset #>
             { <#
-        var entities = endpoints.Where(x => x.DomainToolkit == toolkit && x.DomainToolset == toolset)
-            .Select(x => x.DomainEntity)
-            .Distinct().OrderBy(x => x).ToList();
+        var entities = endpoints.GetEntities(toolkit, toolset);
 
         foreach (var entity in entities)
         {
-            var endpoint = endpoints.Single(x => x.DomainToolkit == toolkit && x.DomainToolset == toolset && x.DomainEntity == entity);
+            var endpoint = endpoints.GetEndpoint(toolkit, toolset, entity);
             var subtype = endpoint.DatabaseObject;
 
             var collection = $"{endpoint.EndpointBase}/{endpoint.EndpointCollection}";
             var item = $"/{endpoint.EndpointItem}";
-            
+
             var count = $"/queries/count";
             var exists = $"/queries/exists";
             var search = $"/queries/search";
@@ -56,12 +53,13 @@ foreach (var toolkit in toolkits)
                     private const string _item = "<#= item #>";
                     private const string _count = "<#= count #>";
                     private const string _exists = "<#= exists #>";
-                    private const string _search = "<#= search #>";              
+                    private const string _search = "<#= search #>";
 
                     public const string Collection = "<#= collection #>";
 
                     public const string Get = Collection + _item; // get one specific entity
                     public const string List = Collection;        // list entities that match criteria
+                    public const string Export = Collection;      // export entities that match criteria
                     
                     public const string Count = Collection + _count;           // count search results that match criteria
                     public const string Exists = Collection + _exists + _item; // check for existence of one specific entity

@@ -1,22 +1,29 @@
 ﻿<#@ template debug="false" hostspecific="false" language="C#" #>
 <#@ output extension=".txt" #>
 <#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ import namespace="System.Data" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="Platform" #>
-<#@ parameter type="System.String" name="DatabaseSchema" #>
-<#@ parameter type="System.String" name="DatabaseTable" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
-<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+<#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
+<#@ import namespace="ApiGenerator.Utility" #><#
+    
+    var platform = Settings.PlatformName;
+    var database = new Database();
+    var endpoints = database.GetEndpoints();
+    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainEntity);
+
+    var generator = new Generator(endpoint);
     
 #>
 using FluentValidation;
 
-using <#= Platform #>.Contract.<#= DomainToolkit #>;
+using <#= platform #>.Contract.<#= DomainToolkit #>;
 
-namespace <#= Platform #>.Service.<#= DomainToolkit #>.Data;
+namespace <#= platform #>.Service.<#= DomainToolkit #>.Data;
 
 public class <#= DomainEntity #>CriteriaValidator : AbstractValidator<<#= DomainEntity #>Criteria>
 {

@@ -1,285 +1,111 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{0E90ADE1-5AC9-49E2-91DB-B6E9B24F71FF}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <RootNamespace>ApiGenerator2</RootNamespace>
+    <AssemblyName>ApiGenerator2</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
   </PropertyGroup>
-
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="EntityGenerator.cs" />
-    <Compile Remove="NET Framework\Entity - Copy.cs" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
-
   <ItemGroup>
-    <None Remove="Adapter - Copy.txt" />
-    <None Remove="ContractCreateRequest - Copy.txt" />
-    <None Remove="ContractRequest - Copy.txt" />
-    <None Remove="ContractUpdateResponse - Copy.txt" />
-    <None Remove="Entity - Copy.txt" />
-    <None Remove="RepositorySearch - Copy.txt" />
-    <None Remove="RepositoryService - Copy.txt" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="System.CodeDom" Version="8.0.0" />
-    <PackageReference Include="System.Text.Json" Version="8.0.1" />
+    <None Include="Api\ProjectionController.ttinclude" />
+    <None Include="Api\TableController.ttinclude" />
+    <None Include="Api\ViewController.ttinclude" />
+    <None Include="App.config" />
+    <None Include="Contract\Clients\ProjectionClient.ttinclude" />
+    <None Include="Contract\Clients\TableClient.ttinclude" />
+    <None Include="Contract\Clients\ViewClient.ttinclude" />
+    <None Include="Contract\CreateRequest.ttinclude" />
+    <None Include="Contract\Criteria.ttinclude" />
+    <None Include="Contract\Endpoints\ProjectionEndpoints.ttinclude" />
+    <None Include="Contract\Endpoints\TableEndpoints.ttinclude" />
+    <None Include="Contract\Endpoints\ViewEndpoints.ttinclude" />
+    <None Include="Contract\Handle.ttinclude" />
+    <None Include="Contract\Model.ttinclude" />
+    <None Include="Contract\ModifyRequest.ttinclude" />
+    <None Include="Service\CriteriaValidator.ttinclude" />
+    <None Include="Service\ProjectionService.ttinclude" />
+    <None Include="Service\TableAdapter.ttinclude" />
+    <None Include="Service\TableEntity.ttinclude" />
+    <None Include="Service\TableEntityConfiguration.ttinclude" />
+    <None Include="Service\TableEntityValidator.ttinclude" />
+    <None Include="Service\TableSearch.ttinclude" />
+    <None Include="Service\TableService.ttinclude" />
+    <None Include="Service\TableStore.ttinclude" />
+    <None Include="Service\ViewService.ttinclude" />
+    <None Include="Test\TableClientTests.ttinclude" />
   </ItemGroup>
-
   <ItemGroup>
-    <None Update="ApiControllerForView.tt">
-      <LastGenOutput>ApiControllerForView.txt</LastGenOutput>
+    <Content Include="Example1.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ContractEndpoints.tt">
-      <LastGenOutput>ContractEndpoints.txt</LastGenOutput>
+      <LastGenOutput>Example1.txt</LastGenOutput>
+    </Content>
+    <Content Include="Generate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ContractViewResponse.tt">
-      <LastGenOutput>ContractViewResponse.txt</LastGenOutput>
+      <LastGenOutput>Generate1.txt</LastGenOutput>
+    </Content>
+    <Content Include="Service\DbContexts\ProjectionDbContext.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ContractViewResponse.txt">
-      <DependentUpon>ContractViewResponse.tt</DependentUpon>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-    </None>
-    <None Update="Generate.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Generate.txt</LastGenOutput>
-    </None>
-    <None Update="Service\DbContexts\TableDbContext.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>TableDbContext.tt</DependentUpon>
-    </None>
-    <None Update="Service\DbContexts\ViewDbContext.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ViewDbContext.tt</DependentUpon>
-    </None>
-    <None Update="Service\EF6\Entity.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Entity.tt</DependentUpon>
-    </None>
-    <None Update="Service\EF6\EntityConfiguration.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>EntityConfiguration.txt</LastGenOutput>
-    </None>
-    <None Update="Persistence\ProjectionDbContext.tt">
       <LastGenOutput>ProjectionDbContext.txt</LastGenOutput>
+    </Content>
+    <Content Include="Service\DbContexts\TableDbContext.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="Service\DbContexts\TableDbContext.tt">
-      <LastGenOutput>TableDbContext.txt</LastGenOutput>
+      <LastGenOutput>TableDbContext1.txt</LastGenOutput>
+    </Content>
+    <Content Include="Service\DbContexts\ViewDbContext.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="Service\DbContexts\QueryDbContext.tt">
+      <LastGenOutput>ViewDbContext1.txt</LastGenOutput>
+    </Content>
+    <Content Include="Service\EF6\Entity.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>QueryDbContext.txt</LastGenOutput>
-    </None>
-    <None Update="Service\DbContexts\ViewDbContext.tt">
+      <LastGenOutput>Entity1.txt</LastGenOutput>
+    </Content>
+    <Content Include="Service\EF6\EntityConfiguration.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ViewDbContext.txt</LastGenOutput>
-    </None>
-    <None Update="Persistence\CoreDbContext.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>CoreDbContext.txt</LastGenOutput>
-    </None>
-    <None Update="Service\EF6\EntityConfiguration.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>EntityConfiguration.tt</DependentUpon>
-    </None>
-    <None Update="ViewAdapter.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ViewAdapter.txt</LastGenOutput>
-    </None>
-    <None Update="SdkClient - Copy.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>SdkClient - Copy.txt</LastGenOutput>
-    </None>
-    <None Update="ViewDbContext.tt">
-      <LastGenOutput>ViewDbContext.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ViewSearch.tt">
-      <LastGenOutput>ViewSearch.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ViewService.tt">
-      <LastGenOutput>ViewService.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="SdkClient.tt">
-      <LastGenOutput>SdkClient.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ContractCreateResponse.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ContractCreateResponse.tt</DependentUpon>
-    </None>
-    <None Update="ContractGetResponse.tt">
-      <LastGenOutput>ContractGetResponse.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ContractUpdateRequest.tt">
-      <LastGenOutput>ContractUpdateRequest.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ContractCreateRequest.tt">
-      <LastGenOutput>ContractCreateRequest.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ContractUpdateResponse.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ContractUpdateResponse.tt</DependentUpon>
-    </None>
-    <None Update="EntityValidator.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>EntityValidator.txt</LastGenOutput>
-    </None>
-    <None Update="NET Framework\EntityConfiguration.tt">
-      <LastGenOutput>EntityConfiguration.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="NET Framework\Entity.tt">
-      <LastGenOutput>Entity.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="_Generators.tt">
-      <LastGenOutput>_Generators.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ApiController.tt">
-      <LastGenOutput>ApiController.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ContractSearchResponse.tt">
-      <LastGenOutput>ContractSearchResponse.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ContractSearchRequest.tt">
-      <LastGenOutput>ContractSearchRequest.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="ContractRequest.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ContractRequest.tt</DependentUpon>
-    </None>
-    <None Update="ContractResponse.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ContractResponse.tt</DependentUpon>
-    </None>
-    <None Update="Controller.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Controller.tt</DependentUpon>
-    </None>
-    <None Update="EntitySearchCriteria.tt">
-      <LastGenOutput>EntitySearchCriteria.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="RepositoryModel.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>RepositoryModel.tt</DependentUpon>
-    </None>
-    <None Update="RepositorySearchCriteria.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>RepositorySearchCriteria.tt</DependentUpon>
-    </None>
-    <None Update="EntityService.tt">
-      <LastGenOutput>EntityService.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="RepositoryService.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>RepositoryService.tt</DependentUpon>
-    </None>
-    <None Update="Validator.tt">
-      <LastGenOutput>Validator.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="Adapter.tt">
-      <LastGenOutput>Adapter.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="Adapter.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Adapter.tt</DependentUpon>
-    </None>
-    <None Update="EntityStore.tt">
-      <LastGenOutput>EntityStore.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="EntitySearch.tt">
-      <LastGenOutput>EntitySearch.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="TableDbContext.tt">
-      <LastGenOutput>TableDbContext.txt</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="RepositorySearch.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>RepositorySearch.tt</DependentUpon>
-    </None>
-    <None Update="RepositoryStore.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>RepositoryStore.tt</DependentUpon>
-    </None>
-    <None Update="Example.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Example.txt</LastGenOutput>
-    </None>
-    <None Update="TestTemplate.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>TestTemplate.tt</DependentUpon>
-    </None>
-    <None Update="Validator.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Validator.tt</DependentUpon>
-    </None>
-    <None Update="Include.ttinclude">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Include.cs</LastGenOutput>
-    </None>
-    <None Update="Service\EF6\Entity.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Entity.txt</LastGenOutput>
-    </None>
+      <LastGenOutput>EntityConfiguration1.txt</LastGenOutput>
+    </Content>
   </ItemGroup>
-
   <ItemGroup>
-    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Common.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Common.tt</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

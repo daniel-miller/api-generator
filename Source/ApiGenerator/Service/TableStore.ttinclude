@@ -1,68 +1,56 @@
 ﻿<#@ template debug="false" hostspecific="false" language="C#" #>
 <#@ output extension=".txt" #>
 <#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ import namespace="System.Data" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="Platform" #>
-<#@ parameter type="System.String" name="DatabaseObject" #>
-<#@ parameter type="System.String" name="DatabaseSchema" #>
-<#@ parameter type="System.String" name="DatabaseTable" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
-<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+<#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
+<#@ import namespace="ApiGenerator.Utility" #><#
     
-    var table = GetTable(DatabaseSchema, DatabaseTable);
+    var platform = Settings.PlatformName;
+    var database = new Database();
+    var endpoints = database.GetEndpoints();
+    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainEntity);
+    var entities = Inflector.PluralizeNoun(endpoint.DomainEntity);
 
-    string DatabaseTablePlural = PluralizeNoun(DatabaseTable);
-    string DomainEntityPlural = PluralizeNoun(DomainEntity);
+    var generator = new Generator(endpoint);
+    var parameters = generator.PrimaryKeyMethodParameters();
+    var expression = generator.PrimaryKeyEqualityExpression();
+    var properties = generator.PrimaryKeyPropertyNames();
+    var values = generator.PrimaryKeyPropertyValues();
+    var query = generator.BuildQuery();
 
-    var pkParameters = "";
-    var pkExpression = "";
-    var pkProperties = "";
-    var pkValues = "";
-    for (int i = 0; i < table.PrimaryKey.Length; i++)
-    {
-        if (i > 0)
-        {
-            pkParameters += ", ";
-            pkExpression += " && ";
-            pkProperties += ", ";
-        }
-        var column = table.PrimaryKey[i];
-        var typeName = TypeNameOrAlias(column.DataType);
-        pkParameters += typeName + " " + ConvertFirstLetterToLowercase(column.ColumnName);
-        pkExpression += "x." + column.ColumnName + " == " + ConvertFirstLetterToLowercase(column.ColumnName);
-        pkProperties += "entity." + column.ColumnName;
-        pkValues += column.ColumnName + " {entity." + column.ColumnName + "}";
-    }
 #>
 using Microsoft.EntityFrameworkCore;
 
-namespace <#= Platform #>.Service.<#= DomainToolkit #>.Data;
+namespace <#= platform #>.Service.<#= DomainToolkit #>.Data;
 
 public class <#= DomainEntity #>Store
 {
-    private readonly <#= DatabaseObject #>DbContext _db;
+    private readonly <#= endpoint.DatabaseObject #>DbContext _db;
         
-    public <#= DomainEntity #>Store(<#= DatabaseObject #>DbContext db)
+    public <#= DomainEntity #>Store(<#= endpoint.DatabaseObject #>DbContext db)
     {
         _db = db;
     }
 
     public async Task<bool> InsertAsync(<#= DomainEntity #>Entity entity, CancellationToken token)
     {
-        var exists = await ExistsAsync(<#= pkProperties #>, token);
+        var exists = await ExistsAsync(<#= properties #>, token);
         if (exists)
             return false;
                 
-        await _db.<#= DomainEntityPlural #>.AddAsync(entity);
+        await _db.<#= entities #>.AddAsync(entity);
         return await _db.SaveChangesAsync(token) > 0;
     }
         
     public async Task<bool> UpdateAsync(<#= DomainEntity #>Entity entity, CancellationToken token)
     {
-        var exists = await ExistsAsync(<#= pkProperties #>, token);
+        var exists = await ExistsAsync(<#= properties #>, token);
         if (!exists)
             return false;
 
@@ -70,16 +58,16 @@ public class <#= DomainEntity #>Store
         return await _db.SaveChangesAsync(token) > 0;
     }
         
-    public async Task<bool> DeleteAsync(<#= pkParameters #>, CancellationToken token)
+    public async Task<bool> DeleteAsync(<#= parameters #>, CancellationToken token)
     {
-        var entity = await _db.<#= DomainEntityPlural #>.SingleOrDefaultAsync(x => <#= pkExpression #>, token);
+        var entity = await _db.<#= entities #>.SingleOrDefaultAsync(x => <#= expression #>, token);
         if (entity == null)
             return false;
 
-        _db.<#= DomainEntityPlural #>.Remove(entity);
+        _db.<#= entities #>.Remove(entity);
         return await _db.SaveChangesAsync(token) > 0;
     }
         
-    private async Task<bool> ExistsAsync(<#= pkParameters #>, CancellationToken token)
-		=> await _db.<#= DomainEntityPlural #>.AsNoTracking().AnyAsync(x => <#= pkExpression #>, token);
+    private async Task<bool> ExistsAsync(<#= parameters #>, CancellationToken token)
+		=> await _db.<#= entities #>.AsNoTracking().AnyAsync(x => <#= expression #>, token);
 }

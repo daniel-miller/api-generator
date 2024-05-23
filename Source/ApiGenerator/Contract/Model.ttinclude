@@ -1,51 +1,31 @@
 ﻿<#@ template debug="false" hostspecific="false" language="C#" #>
 <#@ output extension=".txt" #>
 <#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ import namespace="System.Data" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="Platform" #>
-<#@ parameter type="System.String" name="DatabaseSchema" #>
-<#@ parameter type="System.String" name="DatabaseTable" #>
-<#@ parameter type="System.String" name="DomainEntity" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
-<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
+<#@ import namespace="ApiGenerator.Utility" #><#
 
-    var table = GetTable(DatabaseSchema, DatabaseTable);
+    var platform = Settings.PlatformName;
+    var database = new Database();
+    var endpoints = database.GetEndpoints();
+    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainEntity);
 
-    var columns = new List<DataColumn>();
-    foreach (DataColumn column in table.Columns)
-        columns.Add(column);
-    columns.Sort(new EntityColumnComparer());
+    var generator = new Generator(endpoint);
+    var declarations = generator.PropertyDeclarations(PropertyType.All);
 
 #>
 using System;
 
-namespace <#= Platform #>.Contract.<#= DomainToolkit #>
+namespace <#= platform #>.Contract.<#= DomainToolkit #>
 {
     public partial class <#= DomainEntity #>Model
     {
-<#
-string lasttype = null;
-
-for (int i = 0; i < columns.Count; i++) 
-{ 
-    var column = columns[i];
-    var typeName = TypeNameOrAlias(column.DataType);
-    var datatype = typeName;
-    
-    if (column.DataType != typeof(string) && column.DataType != typeof(byte[]) && column.AllowDBNull)
-        datatype += "?";
-    
-    if (i > 0 && lasttype != typeName)
-        WriteLine("");
-    
-    Write("        public " + datatype + " " + column.ColumnName + " { get; set; }");
-    
-    WriteLine("");
-    
-    lasttype = typeName;
-}
-#>
+<#= declarations #>
     }
 }

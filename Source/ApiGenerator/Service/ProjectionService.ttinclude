@@ -1,73 +1,72 @@
 ﻿<#@ template debug="false" hostspecific="false" language="C#" #>
 <#@ output extension=".txt" #>
 <#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ import namespace="System.Data" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="Platform" #>
-<#@ parameter type="System.String" name="DatabaseSchema" #>
-<#@ parameter type="System.String" name="DatabaseTable" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
-<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+<#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
+<#@ import namespace="ApiGenerator.Utility" #><#
     
-    var table = GetTable(DatabaseSchema, DatabaseTable);
+    var platform = Settings.PlatformName;
+    var database = new Database();
+    var endpoints = database.GetEndpoints();
+    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainEntity);
+    var entities = Inflector.PluralizeNoun(endpoint.DomainEntity);
 
-    var pkParameters = "";
-    var pkExpression = "";
-    var pkProperties = "";
-    var pkValues = "";
-    for (int i = 0; i < table.PrimaryKey.Length; i++)
-    {
-        if (i > 0)
-        {
-            pkParameters += ", ";
-            pkExpression += " && ";
-            pkProperties += ", ";
-            pkValues += ", ";
-        }
-        var column = table.PrimaryKey[i];
-        var typeName = TypeNameOrAlias(column.DataType);
-        pkParameters += typeName + " " + ConvertFirstLetterToLowercase(column.ColumnName);
-        pkExpression += "x." + column.ColumnName + " == " + ConvertFirstLetterToLowercase(column.ColumnName);
-        pkProperties += "entity." + column.ColumnName;
-        pkValues += ConvertFirstLetterToLowercase(column.ColumnName);
-    }
+    var generator = new Generator(endpoint);
+    var parameters = generator.PrimaryKeyMethodParameters();
+    var expression = generator.PrimaryKeyEqualityExpression();
+    var values = generator.PrimaryKeyPropertyValues();
+    var query = generator.BuildQuery();
 
 #>
 using FluentValidation;
 
-using <#= Platform #>.Contract.<#= DomainToolkit #>;
+using <#= platform #>.Contract.<#= DomainToolkit #>;
 
-namespace <#= Platform #>.Service.<#= DomainToolkit #>.Data;
+<# if (DomainEntity == "Module") { #>
+using ModuleHandle = Shift.Contract.Curriculums.ModuleHandle;
+
+<# } #>
+namespace <#= platform #>.Service.<#= DomainToolkit #>.State;
 
 public interface I<#= DomainEntity #>Service
 {
-    Task<<#= DomainEntity #>Model?> GetAsync(<#= pkParameters #>, CancellationToken token);
+    Task<<#= DomainEntity #>Model?> GetAsync(<#= parameters #>, CancellationToken token);
     Task<IEnumerable<<#= DomainEntity #>Model>> ListAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token);
-    Task<IEnumerable<<#= DomainEntity #>Handle>> SearchAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token);
 
+    Task<IEnumerable<<#= DomainEntity #>Handle>> SearchAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token);
+    Task<bool> ExistsAsync(<#= parameters #>, CancellationToken token);
     Task<int> CountAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token);
 }
 
 public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
 {
     private readonly <#= DomainEntity #>Search _search;
+    private readonly <#= DomainEntity #>Store _store;
 
     private readonly <#= DomainEntity #>Adapter _adapter = new <#= DomainEntity #>Adapter();
 
     private readonly IValidator<<#= DomainEntity #>Criteria> _criteriaValidator;
+    private readonly IValidator<<#= DomainEntity #>Entity> _entityValidator;
 
-    public <#= DomainEntity #>Service(<#= DomainEntity #>Search search, IValidator<<#= DomainEntity #>Criteria> criteriaValidator)
+    public <#= DomainEntity #>Service(<#= DomainEntity #>Search search, <#= DomainEntity #>Store store, 
+        IValidator<<#= DomainEntity #>Criteria> criteriaValidator, IValidator<<#= DomainEntity #>Entity> entityValidator)
     {
         _search = search;
+        _store = store;
 
         _criteriaValidator = criteriaValidator;
+        _entityValidator = entityValidator;
     }
 
-    public async Task<<#= DomainEntity #>Model?> GetAsync(<#= pkParameters #>, CancellationToken token)
+    public async Task<<#= DomainEntity #>Model?> GetAsync(<#= parameters #>, CancellationToken token)
     {
-        var entity = await _search.GetAsync(<#= pkValues #>, token);
+        var entity = await _search.GetAsync(<#= values #>, token);
 
         return entity != null ? _adapter.ToModel(entity) : null;
     }
@@ -76,22 +75,22 @@ public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
     {
         await _criteriaValidator.ValidateAndThrowAsync(criteria, token);
 
-        var entities = await _search.SearchAsync(criteria, token);
+        var entities = await _search.ListAsync(criteria, token);
 
         return _adapter.ToModel(entities);
+    }
+
+    public async Task<bool> ExistsAsync(<#= parameters #>, CancellationToken token)
+    {
+        return await _search.ExistsAsync(<#= values #>, token);
     }
 
     public async Task<IEnumerable<<#= DomainEntity #>Handle>> SearchAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
     {
         await _criteriaValidator.ValidateAndThrowAsync(criteria, token);
 
-        var entities = await _search.SearchAsync(criteria, token);
+        var entities = await _search.ListAsync(criteria, token);
 
         return _adapter.ToHandle(entities);
-    }
-
-    public async Task<int> CountAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
-    {
-        return await _search.CountAsync(criteria, token);
     }
 }
