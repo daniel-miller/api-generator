@@ -7,6 +7,7 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
+<#@ parameter type="System.String" name="DomainFeature" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
@@ -14,25 +15,25 @@
     var platform = Settings.PlatformName;
     var database = new Database();
     var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainEntity);
+    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainFeature, DomainEntity);
 
-    var generator = new Generator(endpoint);
-    var declarations = generator.PropertyDeclarations(PropertyType.All, 1);
+    var generator = new Generator(endpoint, "Service");
+    var declarations = generator.PropertyDeclarations(PropertyType.All, false, true, 1);
 
-    var pkColumnNames = "x." + String.Join(", x.", endpoint.DatabasePrimaryKey.Split(new []{','}));
+    var pkColumnNames = "x." + String.Join(", x.", endpoint.PrimaryKey.Split(new []{','}));
 
-    var columns = database.GetTable(endpoint.DatabaseSchema, endpoint.DatabaseTable).Columns;
+    var columns = database.GetTable(endpoint.DatabaseSchema, endpoint.DatabaseObject).Columns;
 #>
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace <#= platform #>.Service.<#= DomainToolkit #>.Data;
+namespace <#= generator.Namespace() #>;
 
 internal class <#= DomainEntity #>Configuration : IEntityTypeConfiguration<<#= DomainEntity #>Entity>
 {
     public void Configure(EntityTypeBuilder<<#= DomainEntity #>Entity> builder) 
     {
-        builder.ToTable("<#= endpoint.DatabaseTable #>", "<#= endpoint.DatabaseSchema #>");
+        builder.ToTable("<#= endpoint.DatabaseObject #>", "<#= endpoint.DatabaseSchema #>");
         builder.HasKey(x => new { <#= pkColumnNames #> });
             
 <# 
@@ -50,7 +51,7 @@ for (int i = 0; i < columns.Count; i++)
     
     if (column.DataType == typeof(string))
     {
-        if (database.GetNativeType(endpoint.DatabaseTable, column.ColumnName) == "nvarchar")
+        if (database.GetNativeType(endpoint.DatabaseObject, column.ColumnName) == "nvarchar")
         {
             Write(".IsUnicode(true)");
         }
@@ -66,8 +67,8 @@ for (int i = 0; i < columns.Count; i++)
     }
     else if (column.DataType == typeof(decimal))
     {
-        var precision = database.GetColumnPrecision(endpoint.DatabaseTable, column.ColumnName);
-        var scale = database.GetColumnScale(endpoint.DatabaseTable, column.ColumnName);
+        var precision = database.GetColumnPrecision(endpoint.DatabaseObject, column.ColumnName);
+        var scale = database.GetColumnScale(endpoint.DatabaseObject, column.ColumnName);
         if (precision != null && scale != null)
         {
             Write($".HasPrecision({precision}, {scale})");

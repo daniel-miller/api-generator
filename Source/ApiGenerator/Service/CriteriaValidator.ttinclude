@@ -7,23 +7,21 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
+<#@ parameter type="System.String" name="DomainFeature" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
     
-    var platform = Settings.PlatformName;
     var database = new Database();
-    var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainEntity);
-
-    var generator = new Generator(endpoint);
+    var endpoint = database.GetEndpoints().GetEndpoint(DomainToolkit, DomainFeature, DomainEntity);
+    var generator = new Generator(endpoint, "Service");
     
 #>
 using FluentValidation;
 
-using <#= platform #>.Contract.<#= DomainToolkit #>;
+using <#= generator.Namespace("Contract") #>;
 
-namespace <#= platform #>.Service.<#= DomainToolkit #>.Data;
+namespace <#= generator.Namespace() #>;
 
 public class <#= DomainEntity #>CriteriaValidator : AbstractValidator<<#= DomainEntity #>Criteria>
 {

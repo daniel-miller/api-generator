@@ -12,6 +12,6 @@
 
     foreach (var endpoint in endpoints)
     {
-        WriteLine($"{endpoint.DatabaseSchema}.{endpoint.DatabaseTable}: {endpoint.DomainToolkit}/{endpoint.DomainToolset}/{endpoint.DomainEntity}");
+        WriteLine($"{endpoint.DatabaseSchema}.{endpoint.DatabaseObject}: {endpoint.DomainToolkit}/{endpoint.DomainFeature}/{endpoint.DomainEntity}");
     }
 #>

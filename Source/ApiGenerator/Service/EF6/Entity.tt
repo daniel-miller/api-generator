@@ -7,10 +7,10 @@
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
     
     var DatabaseSchema = "accounts";
-    var DatabaseTable = "QOrganization";
-    var DomainEntity = DatabaseTable;
+    var DatabaseObject = "QOrganization";
+    var DomainEntity = DatabaseObject;
 
-    var table = GetTable(DatabaseSchema, DatabaseTable);
+    var table = GetTable(DatabaseSchema, DatabaseObject);
     var columns = new List<DataColumn>();
     foreach (DataColumn column in table.Columns)
         columns.Add(column);

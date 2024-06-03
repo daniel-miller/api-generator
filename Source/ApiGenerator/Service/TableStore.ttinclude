@@ -7,6 +7,7 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
+<#@ parameter type="System.String" name="DomainFeature" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
@@ -14,10 +15,10 @@
     var platform = Settings.PlatformName;
     var database = new Database();
     var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainEntity);
+    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainFeature, DomainEntity);
     var entities = Inflector.PluralizeNoun(endpoint.DomainEntity);
 
-    var generator = new Generator(endpoint);
+    var generator = new Generator(endpoint, "Service");
     var parameters = generator.PrimaryKeyMethodParameters();
     var expression = generator.PrimaryKeyEqualityExpression();
     var properties = generator.PrimaryKeyPropertyNames();
@@ -27,13 +28,13 @@
 #>
 using Microsoft.EntityFrameworkCore;
 
-namespace <#= platform #>.Service.<#= DomainToolkit #>.Data;
+namespace <#= generator.Namespace() #>;
 
 public class <#= DomainEntity #>Store
 {
-    private readonly <#= endpoint.DatabaseObject #>DbContext _db;
+    private readonly <#= endpoint.Component #>DbContext _db;
         
-    public <#= DomainEntity #>Store(<#= endpoint.DatabaseObject #>DbContext db)
+    public <#= DomainEntity #>Store(<#= endpoint.Component #>DbContext db)
     {
         _db = db;
     }
@@ -44,7 +45,7 @@ public class <#= DomainEntity #>Store
         if (exists)
             return false;
                 
-        await _db.<#= entities #>.AddAsync(entity);
+        await _db.<#= entities #>.AddAsync(entity, token);
         return await _db.SaveChangesAsync(token) > 0;
     }
         

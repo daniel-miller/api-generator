@@ -30,37 +30,6 @@ namespace <#= generator.Namespace() #>;
 
 public class <#= DomainEntity #>Adapter
 {
-    public void Copy(Modify<#= DomainEntity #> modify, <#= DomainEntity #>Entity entity)
-    {
-<#
-for (int i = 0; i < columns.Count; i++) 
-{
-    var column = columns[i];
-    if (primaryKey.Contains(column.ColumnName))
-        continue;
-
-    WriteLine("        entity." + column.ColumnName + " = modify." + column.ColumnName + ";");
-}
-#>    }
-
-    public <#= DomainEntity #>Entity ToEntity(Create<#= DomainEntity #> create)
-    {
-        var entity = new <#= DomainEntity #>Entity
-        {
-<#
-for (int i = 0; i < columns.Count; i++) 
-{
-    var column = columns[i];
-    Write("            " + column.ColumnName + " = create." + column.ColumnName);
-    if (i < columns.Count - 1)
-        WriteLine(",");
-}
-#>
-
-        };
-        return entity;
-    }
-
     public IEnumerable<<#= DomainEntity #>Model> ToModel(IEnumerable<<#= DomainEntity #>Entity> entities)
     {
         return entities.Select(ToModel);

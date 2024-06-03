@@ -7,6 +7,7 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
+<#@ parameter type="System.String" name="DomainFeature" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
@@ -14,25 +15,20 @@
     var platform = Settings.PlatformName;
     var database = new Database();
     var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainEntity);
+    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainFeature, DomainEntity);
     var entities = Inflector.PluralizeNoun(endpoint.DomainEntity);
 
-    var generator = new Generator(endpoint);
+    var generator = new Generator(endpoint, "Service");
     var parameters = generator.PrimaryKeyMethodParameters();
+    var arguments = generator.PrimaryKeyMethodArguments();
     var expression = generator.PrimaryKeyEqualityExpression();
-    var values = generator.PrimaryKeyPropertyValues();
-    var query = generator.BuildQuery();
 
 #>
 using FluentValidation;
 
-using <#= platform #>.Contract.<#= DomainToolkit #>;
+<#= generator.UsingStatements("Contract") #>
 
-<# if (DomainEntity == "Module") { #>
-using ModuleHandle = Shift.Contract.Curriculums.ModuleHandle;
-
-<# } #>
-namespace <#= platform #>.Service.<#= DomainToolkit #>.Data;
+namespace <#= generator.Namespace() #>;
 
 public interface I<#= DomainEntity #>Service
 {
@@ -47,26 +43,21 @@ public interface I<#= DomainEntity #>Service
 public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
 {
     private readonly <#= DomainEntity #>Search _search;
-    private readonly <#= DomainEntity #>Store _store;
 
     private readonly <#= DomainEntity #>Adapter _adapter = new <#= DomainEntity #>Adapter();
 
     private readonly IValidator<<#= DomainEntity #>Criteria> _criteriaValidator;
-    private readonly IValidator<<#= DomainEntity #>Entity> _entityValidator;
 
-    public <#= DomainEntity #>Service(<#= DomainEntity #>Search search, <#= DomainEntity #>Store store, 
-        IValidator<<#= DomainEntity #>Criteria> criteriaValidator, IValidator<<#= DomainEntity #>Entity> entityValidator)
+    public <#= DomainEntity #>Service(<#= DomainEntity #>Search search, IValidator<<#= DomainEntity #>Criteria> criteriaValidator)
     {
         _search = search;
-        _store = store;
 
         _criteriaValidator = criteriaValidator;
-        _entityValidator = entityValidator;
     }
 
     public async Task<<#= DomainEntity #>Model?> GetAsync(<#= parameters #>, CancellationToken token)
     {
-        var entity = await _search.GetAsync(<#= values #>, token);
+        var entity = await _search.GetAsync(<#= arguments #>, token);
 
         return entity != null ? _adapter.ToModel(entity) : null;
     }
@@ -80,9 +71,14 @@ public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
         return _adapter.ToModel(entities);
     }
 
+    public async Task<int> CountAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
+    {
+        return await _search.CountAsync(criteria, token);
+    }
+
     public async Task<bool> ExistsAsync(<#= parameters #>, CancellationToken token)
     {
-        return await _search.ExistsAsync(<#= values #>, token);
+        return await _search.ExistsAsync(<#= arguments #>, token);
     }
 
     public async Task<IEnumerable<<#= DomainEntity #>Handle>> SearchAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)

@@ -18,11 +18,11 @@
 #>
 namespace <#= platform #>.Contract
 {
-    public static partial class ViewEndpoints
+    public static partial class Endpoints
     { <# 
 foreach (var toolkit in toolkits) 
 { 
-    var toolsets = endpoints.GetToolsets(toolkit);
+    var toolsets = endpoints.GetFeatures(toolkit);
 #>
 
         public static partial class <#= toolkit #>Api
@@ -37,7 +37,7 @@ foreach (var toolkit in toolkits)
         foreach (var entity in entities)
         {
             var endpoint = endpoints.GetEndpoint(toolkit, toolset, entity);
-            var subtype = endpoint.DatabaseObject;
+            var subtype = endpoint.Component;
 
             var collection = $"{endpoint.EndpointBase}/{endpoint.EndpointCollection}";
             var item = $"/{endpoint.EndpointItem}";

@@ -1,33 +1,59 @@
 ﻿<#@ template debug="false" hostspecific="true" language="C#" #>
 <#@ output extension=".txt" #>
 <#@ assembly name="System.Core" #>
-<#@ import namespace="System.IO" #>
+<#@ assembly name="System.Data" #>
+<#@ import namespace="System.Data" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ import namespace="Microsoft.VisualStudio.TextTemplating" #>
-<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #>
+<#@ parameter type="System.String" name="DomainToolkit" #>
+<#@ parameter type="System.String" name="DomainFeature" #>
+<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
+<#@ import namespace="ApiGenerator.Utility" #>
 using Microsoft.EntityFrameworkCore;
 
 <#
-var settings = GetSettings();
-var platform = Settings.PlatformName;;
 
-var toolkits = GetEndpoints()
-    .Where(x => x.DatabaseObject == "Query")
-    .Select(x => x.DomainToolkit)
-    .Distinct()
-    .OrderBy(x => x);
+    var platform = Settings.PlatformName;
+    var database = new Database();
+    
+    var projections = database.GetEndpoints()
+        .Where(x => x.Component == "Projection")
+        .ToList();
 
-foreach (var toolkit in toolkits)
-    WriteLine($"using {platform}.Persistence.{toolkit};");
+    var toolkits = projections.Select(x => x.DomainToolkit)
+        .Distinct()
+        .OrderBy(x => x);
+
+    foreach (var toolkit in toolkits)
+    {
+        if (toolkit == "Integration" || toolkit == "Plugin")
+        {    
+            var toolsets = projections.Where(x => x.DomainToolkit == toolkit)
+                .Select(x => x.DomainFeature)
+                .Distinct()
+                .OrderBy(x => x);
+
+            foreach (var toolset in toolsets)
+            {
+                var space = $"{platform}.Service.{toolkit}.{toolset}";
+                WriteLine($"using {space};");
+            }
+        }
+        else
+        {
+            var space = $"{platform}.Service.{toolkit}";
+            WriteLine($"using {space};");
+        }
+    }
 #>
 
-namespace Shift.Persistence;
+namespace Shift.Service;
 
-public class QueryDbContext : DbContext, IContext
+public class ProjectionDbContext : DbContext
 {
-    public QueryDbContext(DbContextOptions options) : base(options) { }
+    public ProjectionDbContext(DbContextOptions options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -54,11 +80,9 @@ public class QueryDbContext : DbContext, IContext
     private void ApplyConfigurations(ModelBuilder builder)
     {
 <#
-var endpoints = GetEndpoints().Where(x => x.DatabaseObject == "Query");
 var lines = new List<string>();
-foreach (var endpoint in endpoints)
+foreach (var endpoint in projections)
 {
-    var DomainEntityPlural = PluralizeNoun(endpoint.DomainEntity);
     lines.Add("        builder.ApplyConfiguration(new " + endpoint.DomainEntity + "Configuration());");
 }
 lines.Sort();
@@ -71,10 +95,9 @@ foreach (var line in lines)
 
 <#
 lines = new List<string>();
-foreach (var endpoint in endpoints)
+foreach (var endpoint in projections)
 {
-    var DomainEntityPlural = PluralizeNoun(endpoint.DomainEntity);
-    lines.Add("        internal DbSet<" + endpoint.DomainEntity + "Entity> " + DomainEntityPlural + " { get; set; }");
+    lines.Add("        internal DbSet<" + endpoint.DomainEntity + "Entity> " + endpoint.DomainEntities + " { get; set; }");
 }
 lines.Sort();
 foreach (var line in lines)

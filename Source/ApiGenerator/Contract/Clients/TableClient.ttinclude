@@ -7,6 +7,7 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
+<#@ parameter type="System.String" name="DomainFeature" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
@@ -14,13 +15,13 @@
     var platform = Settings.PlatformName;
     var database = new Database();
     var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainEntity);
+    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainFeature, DomainEntity);
     
-    var generator = new Generator(endpoint);
+    var generator = new Generator(endpoint, "Contract");
     var pkParameters = generator.PrimaryKeyMethodParameters();
     var pkArguments = generator.PrimaryKeyMethodArguments();
 
-    var apiRoute = "TableEndpoints." + generator.ApiCollection();
+    var apiRoute = "Endpoints." + generator.ApiCollection();
 
 #>
 using System;
@@ -29,7 +30,7 @@ using System.Threading.Tasks;
 
 using Common;
 
-namespace <#= platform #>.Contract.<#= DomainToolkit #>
+namespace <#= generator.Namespace() #>
 {
     public class <#= DomainEntity #>Client
     {
@@ -52,11 +53,11 @@ namespace <#= platform #>.Contract.<#= DomainToolkit #>
         public async Task<IEnumerable<<#= DomainEntity #>Model>> ExportAsync(<#= DomainEntity #>Criteria criteria)
             => await _sdk.Export<<#= DomainEntity #>Model>(<#= apiRoute #>.Collection, _sdk.ToDictionary(criteria));
 
-        public async Task<<#= DomainEntity #>Model> CreateAsync(Create<#= DomainEntity #> request)
-            => await _sdk.Create<<#= DomainEntity #>Model>(<#= apiRoute #>.Collection, request);
+        public async Task<<#= DomainEntity #>Model> CreateAsync(Create<#= DomainEntity #> create)
+            => await _sdk.Create<<#= DomainEntity #>Model>(<#= apiRoute #>.Collection, create);
             
-        public async Task ModifyAsync(Modify<#= DomainEntity #> request, <#= pkParameters #>)
-            => await _sdk.Modify(<#= apiRoute #>.Collection, <#= pkArguments #>, request);
+        public async Task ModifyAsync(Modify<#= DomainEntity #> modify, <#= pkParameters #>)
+            => await _sdk.Modify(<#= apiRoute #>.Collection, <#= pkArguments #>, modify);
 
         public async Task DeleteAsync(<#= pkParameters #>)
             => await _sdk.Delete(<#= apiRoute #>.Collection, <#= pkArguments #>);
@@ -81,11 +82,11 @@ namespace <#= platform #>.Contract.<#= DomainToolkit #>
         public IEnumerable<<#= DomainEntity #>Model> Export(<#= DomainEntity #>Criteria criteria)
             => Task.Run(() => ExportAsync(criteria)).GetAwaiter().GetResult();
 
-        public <#= DomainEntity #>Model Create(Create<#= DomainEntity #> request)
-            => Task.Run(() => CreateAsync(request)).GetAwaiter().GetResult();
+        public <#= DomainEntity #>Model Create(Create<#= DomainEntity #> create)
+            => Task.Run(() => CreateAsync(create)).GetAwaiter().GetResult();
 
-        public void Modify(Modify<#= DomainEntity #> request, <#= pkParameters #>)
-            => Task.Run(() => ModifyAsync(request, <#= pkArguments #>)).GetAwaiter().GetResult();
+        public void Modify(Modify<#= DomainEntity #> modify, <#= pkParameters #>)
+            => Task.Run(() => ModifyAsync(modify, <#= pkArguments #>)).GetAwaiter().GetResult();
 
         public void Delete(<#= pkParameters #>)
             => Task.Run(() => DeleteAsync(<#= pkArguments #>)).GetAwaiter().GetResult();

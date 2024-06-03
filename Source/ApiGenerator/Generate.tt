@@ -24,17 +24,15 @@
     {
         // Uncomment the code-generation function for each library you want to generate.
 
-        // Contract - Requests and Responses and SDK Clients
+        // Contract - Requests, Responses, SDK Clients
         GenerateContractLibrary(engine, session, endpoint, templates, $@"{output}\{platform}.Contract");
+        GenerateContractTestLibrary(engine, session, endpoint, templates, $@"{output}\{platform}.Contract.Test");
 
-        // Service - Repositories (Entities and Adapters, Search and Store)
+        // Service - Entities, Adapters, Repositories
         GenerateServiceLibrary(engine, session, endpoint, templates, $@"{output}\{platform}.Service");
 
         // API - Controllers
         GenerateApiLibrary(engine, session, endpoint, templates, $@"{output}\{platform}.Api");
-
-        // Unit Tests
-        GenerateTestLibrary(engine, session, endpoint, templates, $@"{output}\{platform}.Test");
     }
 #>
 <#+
@@ -60,53 +58,53 @@
     public void GenerateContractLibrary(Engine engine, TextTemplatingSession session, Endpoint endpoint, string templates, string output)
     {
         var source = $@"{templates}\Contract";
-        var folder = GeneratePath(output, endpoint.DomainToolkit, endpoint.DomainToolset, "Data", endpoint.DatabaseObjects, endpoint.DomainEntity);
+        var folder = GeneratePath(output, endpoint.DomainToolkit, endpoint.DomainFeature, endpoint.Layer, endpoint.Components, endpoint.DomainEntity);
 
         GenerateClass(engine, session, endpoint, $@"{source}\Criteria.ttinclude", $@"{folder}\{endpoint.DomainEntity}Criteria.cs");
         GenerateClass(engine, session, endpoint, $@"{source}\Model.ttinclude", $@"{folder}\{endpoint.DomainEntity}Model.cs");
         GenerateClass(engine, session, endpoint, $@"{source}\Handle.ttinclude", $@"{folder}\{endpoint.DomainEntity}Handle.cs");
         
-        if (endpoint.DatabaseObject == "Table")
+        if (endpoint.Component == "Table")
         {
             GenerateClass(engine, session, endpoint, $@"{source}\CreateRequest.ttinclude", $@"{folder}\Create{endpoint.DomainEntity}.cs");
             GenerateClass(engine, session, endpoint, $@"{source}\ModifyRequest.ttinclude", $@"{folder}\Modify{endpoint.DomainEntity}.cs");
         }
 
-        GenerateClass(engine, session, endpoint, $@"{source}\Clients\{endpoint.DatabaseObject}Client.ttinclude", $@"{folder}\{endpoint.DomainEntity}Client.cs");
+        GenerateClass(engine, session, endpoint, $@"{source}\Clients\{endpoint.Component}Client.ttinclude", $@"{folder}\{endpoint.DomainEntity}Client.cs");
+    }
+
+    public void GenerateContractTestLibrary(Engine engine, TextTemplatingSession session, Endpoint endpoint, string templates, string output)
+    {
+        var source = $@"{templates}\Contract.Test";
+        var folder = GeneratePath(output, endpoint.DomainToolkit, endpoint.DomainFeature, endpoint.Layer, endpoint.Components);
+        GenerateClass(engine, session, endpoint, $@"{source}\TableClientTests.ttinclude", $@"{folder}\{endpoint.DomainEntity}ClientTests.cs");
     }
 
     public void GenerateServiceLibrary(Engine engine, TextTemplatingSession session, Endpoint endpoint, string templates, string output)
     {
         var source = $@"{templates}\Service";
-        var folder = GeneratePath(output, endpoint.DomainToolkit, endpoint.DomainToolset, "Data", endpoint.DatabaseObjects, endpoint.DomainEntity);
+        var folder = GeneratePath(output, endpoint.DomainToolkit, endpoint.DomainFeature, endpoint.Layer, endpoint.Components, endpoint.DomainEntity);
 
         GenerateClass(engine, session, endpoint, $@"{source}\CriteriaValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}CriteriaValidator.cs");
         GenerateClass(engine, session, endpoint, $@"{source}\TableEntity.ttinclude", $@"{folder}\{endpoint.DomainEntity}Entity.cs");
         GenerateClass(engine, session, endpoint, $@"{source}\TableEntityConfiguration.ttinclude", $@"{folder}\{endpoint.DomainEntity}EntityConfiguration.cs");
-        GenerateClass(engine, session, endpoint, $@"{source}\TableAdapter.ttinclude", $@"{folder}\{endpoint.DomainEntity}Adapter.cs");
         GenerateClass(engine, session, endpoint, $@"{source}\TableSearch.ttinclude", $@"{folder}\{endpoint.DomainEntity}Search.cs");
 
-        if (endpoint.DatabaseObject == "Table" || endpoint.DatabaseObject == "Projection")
+        if (endpoint.Component == "Table" || endpoint.Component == "Projection")
         {
             GenerateClass(engine, session, endpoint, $@"{source}\TableEntityValidator.ttinclude", $@"{folder}\{endpoint.DomainEntity}EntityValidator.cs");
             GenerateClass(engine, session, endpoint, $@"{source}\TableStore.ttinclude", $@"{folder}\{endpoint.DomainEntity}Store.cs");
         }
 
-        GenerateClass(engine, session, endpoint, $@"{source}\{endpoint.DatabaseObject}Service.ttinclude", $@"{folder}\{endpoint.DomainEntity}Service.cs");
+        GenerateClass(engine, session, endpoint, $@"{source}\{endpoint.Component}Adapter.ttinclude", $@"{folder}\{endpoint.DomainEntity}Adapter.cs");
+        GenerateClass(engine, session, endpoint, $@"{source}\{endpoint.Component}Service.ttinclude", $@"{folder}\{endpoint.DomainEntity}Service.cs");
     }
 
     public void GenerateApiLibrary(Engine engine, TextTemplatingSession session, Endpoint endpoint, string templates, string output)
     {
         var source = $@"{templates}\Api";
-        var folder = GeneratePath(output, endpoint.DomainToolkit, endpoint.DomainToolset, "Data");
-        GenerateClass(engine, session, endpoint, $@"{source}\{endpoint.DatabaseObject}Controller.ttinclude", $@"{folder}\{endpoint.DomainEntity}Controller.cs");
-    }
-
-    public void GenerateTestLibrary(Engine engine, TextTemplatingSession session, Endpoint endpoint, string templates, string output)
-    {
-        var source = $@"{templates}\Test";
-        var folder = GeneratePath(output, endpoint.DomainToolkit, endpoint.DomainToolset, "Data");
-        GenerateClass(engine, session, endpoint, $@"{source}\TableClientTests.ttinclude", $@"{folder}\{endpoint.DomainEntity}ClientTests.cs");
+        var folder = GeneratePath(output, endpoint.DomainToolkit, endpoint.DomainFeature, endpoint.Layer, endpoint.Components);
+        GenerateClass(engine, session, endpoint, $@"{source}\{endpoint.Component}Controller.ttinclude", $@"{folder}\{endpoint.DomainEntity}Controller.cs");
     }
 
     public void GenerateClass(Engine engine, TextTemplatingSession session, Endpoint endpoint, string input, string output)
@@ -114,6 +112,7 @@
         if (endpoint != null) 
         {
             session["DomainToolkit"] = endpoint.DomainToolkit;
+            session["DomainFeature"] = endpoint.DomainFeature;
             session["DomainEntity"] = endpoint.DomainEntity;
         }
 

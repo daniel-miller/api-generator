@@ -2,8 +2,8 @@
 {
     public static class Settings
     {
-        public static string DatabaseName = "M01_Local_Festival";
-        public static string OutputDirectory = "D:\\temp\\t4";
-        public static string PlatformName = "Festival";
+        public static string DatabaseName = "MyDatabaseName";
+        public static string OutputDirectory = "C:\\Temp";
+        public static string PlatformName = "Example";
     }
 }

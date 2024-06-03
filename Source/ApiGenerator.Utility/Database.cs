@@ -19,8 +19,8 @@ namespace ApiGenerator.Utility
         {
             using (var connection = OpenDatabaseConnection())
             {
-                var where = databaseObject == null ? "" : $"WHERE DatabaseObject = '{databaseObject}'";
-                var select = $"SELECT * FROM databases.TApiEndpoint {where} ORDER BY DomainToolkit, DomainToolset, DomainEntity";
+                var where = databaseObject == null ? "" : $"WHERE Component = '{databaseObject}'";
+                var select = $"SELECT * FROM databases.TApiEndpoint {where} ORDER BY DomainToolkit, DomainFeature, DomainEntity";
 
                 System.Diagnostics.Debug.WriteLine(select);
 
@@ -35,14 +35,14 @@ namespace ApiGenerator.Utility
                 {
                     var endpoint = new Endpoint
                     {
-                        DatabaseObject = (string)row["DatabaseObject"],
+                        Component = (string)row["Component"],
                         DatabaseSchema = (string)row["DatabaseSchema"],
-                        DatabaseTable = (string)row["DatabaseTable"],
-                        DatabasePrimaryKey = (string)row["DatabasePrimaryKey"],
-                        DatabasePrimaryKeySize = (int)row["DatabasePrimaryKeySize"],
+                        DatabaseObject = (string)row["DatabaseObject"],
+                        PrimaryKey = (string)row["PrimaryKey"],
+                        PrimaryKeySize = (int)row["PrimaryKeySize"],
 
                         DomainToolkit = (string)row["DomainToolkit"],
-                        DomainToolset = (string)row["DomainToolset"],
+                        DomainFeature = (string)row["DomainFeature"],
                         DomainEntity = (string)row["DomainEntity"],
 
                         EndpointBase = (string)row["EndpointBase"],

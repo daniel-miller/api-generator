@@ -4,17 +4,12 @@ using System.Linq;
 
 namespace ApiGenerator.Utility
 {
-    public enum PropertyType
-    {
-        All,
-        OnlyPrimaryKey,
-        ExcludePrimaryKey
-    }
-
     public class Generator
     {
-        private Database _database;
         private Endpoint _endpoint;
+        private string _package;
+
+        private Database _database;
 
         private string _pkMethodParameters;
         private string _pkMethodArguments;
@@ -26,13 +21,15 @@ namespace ApiGenerator.Utility
         private string _pkPropertyValuesForGet;
         private string _pkPropertyValuesForModify;
 
-        public Generator(Endpoint endpoint, bool isController = false)
+        public Generator(Endpoint endpoint, string package)
         {
             _endpoint = endpoint;
+            _package = package;
+
             _database = new Database();
 
-            var table = _database.GetTable(_endpoint.DatabaseSchema, _endpoint.DatabaseTable);
-            var primaryKey = _endpoint.DatabasePrimaryKey.Split(',');
+            var table = _database.GetTable(_endpoint.DatabaseSchema, _endpoint.DatabaseObject);
+            var primaryKey = _endpoint.PrimaryKey.Split(',');
 
             _pkMethodParameters = "";
             _pkMethodArguments = "";
@@ -60,7 +57,7 @@ namespace ApiGenerator.Utility
                     _pkPropertyValuesForGet += ", ";
                 }
                 
-                _pkMethodParameters += (isController ? "[FromRoute] " : "") + typeName + " " + variableName;
+                _pkMethodParameters += (_package == "Api" ? "[FromRoute] " : "") + typeName + " " + variableName;
                 _pkMethodArguments += variableName;
                 _pkEqualityExpression += "x." + column.ColumnName + " == " + variableName;
 
@@ -76,18 +73,23 @@ namespace ApiGenerator.Utility
         public string ApiCollection()
         {
             var apiSpace = _endpoint.DomainToolkit + "Api";
-            if (_endpoint.DomainToolset != "-")
-                apiSpace += "." + _endpoint.DomainToolset;
+
+            if (_endpoint.DomainFeature != "-")
+                apiSpace += "." + _endpoint.DomainFeature;
+            
             if (_endpoint.DomainEntity != "-")
                 apiSpace += "." + _endpoint.DomainEntity;
+            
             return apiSpace;
         }
 
         public string ApiGroup()
         {
             var apiGroup = _endpoint.DomainToolkit;
-            if (_endpoint.DomainToolset != "-")
-                apiGroup += ": " + _endpoint.DomainToolset;
+
+            if (_endpoint.DomainFeature != "-")
+                apiGroup += ": " + _endpoint.DomainFeature;
+            
             return apiGroup;
         }
 
@@ -95,17 +97,11 @@ namespace ApiGenerator.Utility
         {
             var criteria = new List<DataColumn>();
 
-            var table = _database.GetTable(_endpoint.DatabaseSchema, _endpoint.DatabaseTable);
+            var table = _database.GetTable(_endpoint.DatabaseSchema, _endpoint.DatabaseObject);
+            var primaryKey = _endpoint.PrimaryKey.Split(',');
 
-            for (int i = 0; i < table.PrimaryKey.Length; i++)
-                criteria.Add(table.PrimaryKey[i]);
-
-            foreach (DataColumn column in table.Columns)
-            {
-                if (column.ColumnName == "OrganizationIdentifier" || column.ColumnName == "OriginOrganization")
-                    if (!criteria.Any(x => x.ColumnName == column.ColumnName))
-                        criteria.Add(column);
-            }
+            for (int i = 0; i < primaryKey.Length; i++)
+                criteria.Add(table.Columns[primaryKey[i]]);
 
             criteria.Sort(new Database.EntityColumnComparer());
 
@@ -128,9 +124,19 @@ namespace ApiGenerator.Utility
             return Inflector.ConvertFirstLetterToLowercase(_endpoint.DomainEntity);
         }
 
+        public string Namespace(string package = null)
+        {
+            var space = $"{Settings.PlatformName}.{package ?? _package}.{_endpoint.DomainToolkit}";
+
+            if (_endpoint.DomainToolkit == "Integration" || _endpoint.DomainToolkit == "Plugin")
+                space += "." + _endpoint.DomainFeature;
+
+            return space;
+        }
+
         public string[] PrimaryKey()
         {
-            return _endpoint.DatabasePrimaryKey.Split(new char[] {','});
+            return _endpoint.PrimaryKey.Split(new char[] {','});
         }
 
         public string PrimaryKeyEqualityExpression()
@@ -173,19 +179,20 @@ namespace ApiGenerator.Utility
             return _pkPropertyValuesForModify;
         }
 
-        public string PropertyDeclarations(PropertyType type, int tabs = 2)
+        public string PropertyDeclarations(PropertyType type, bool allowNull = false, bool isCore = false, int tabs = 2)
         {
             var indent = new string(' ', tabs * 4);
 
-            var table = _database.GetTable(_endpoint.DatabaseSchema, _endpoint.DatabaseTable);
+            var table = _database.GetTable(_endpoint.DatabaseSchema, _endpoint.DatabaseObject);
+            var primaryKey = _endpoint.PrimaryKey.Split(',');
 
             var columns = new List<DataColumn>();
             foreach (DataColumn column in table.Columns)
             {
-                if (type == PropertyType.OnlyPrimaryKey && !_endpoint.DatabasePrimaryKey.Contains(column.ColumnName))
+                if (type == PropertyType.OnlyPrimaryKey && !primaryKey.Contains(column.ColumnName))
                     continue;
 
-                if (type == PropertyType.ExcludePrimaryKey && _endpoint.DatabasePrimaryKey.Contains(column.ColumnName))
+                if (type == PropertyType.ExcludePrimaryKey && primaryKey.Contains(column.ColumnName))
                     continue;
 
                 columns.Add(column);
@@ -202,14 +209,17 @@ namespace ApiGenerator.Utility
                 var typeName = Database.TypeNameOrAlias(column.DataType);
                 var datatype = typeName;
 
-                if (column.DataType != typeof(string) && column.DataType != typeof(byte[]) && column.AllowDBNull)
+                if (column.DataType != typeof(string) && column.DataType != typeof(byte[]) && (allowNull || column.AllowDBNull))
                     datatype += "?";
 
                 if (declarations != string.Empty && lasttype != typeName)
                     declarations += "\r\n";
 
                 declarations += indent + "public " + datatype + " " + column.ColumnName + " { get; set; }";
-                
+
+                if ((column.DataType == typeof(string) || column.DataType == typeof(byte[])) && isCore)
+                    declarations += " = null!;";
+
                 if (i < columns.Count - 1)
                     declarations += "\r\n";
 
@@ -217,6 +227,18 @@ namespace ApiGenerator.Utility
             }
 
             return declarations;
+        }
+
+        public string UsingStatements(string package = null)
+        {
+            string statements = $"using {Namespace(package)};";
+
+            if (_endpoint.DomainEntity == "Module")
+            {
+                statements += $"\r\nusing ModuleHandle = {Settings.PlatformName}.{package}.Curriculum.ModuleHandle;";
+            }
+
+            return statements;
         }
     }
 }

@@ -7,6 +7,7 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
+<#@ parameter type="System.String" name="DomainFeature" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
@@ -14,10 +15,10 @@
     var platform = Settings.PlatformName;
     var database = new Database();
     var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainEntity);
+    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainFeature, DomainEntity);
     var entities = Inflector.PluralizeNoun(DomainEntity);
 
-    var generator = new Generator(endpoint, true);
+    var generator = new Generator(endpoint, "Test");
     var parameters = generator.PrimaryKeyMethodParameters();
     var arguments = generator.PrimaryKeyMethodArguments();
     var expression = generator.PrimaryKeyEqualityExpression();
@@ -27,17 +28,12 @@
     var pkValuesForModify = generator.PrimaryKeyPropertyValuesForModify();
 
     var apiGroup = generator.ApiGroup();
-    var apiSpace = generator.ApiCollection();
     var entity = generator.EntityVariable();
 
 #>
-using <#= platform #>.Contract.<#= DomainToolkit #>;
+<#= generator.UsingStatements("Contract") #>
 
-<# if (DomainEntity == "Module") { #>
-using ModuleHandle = Shift.Contract.Curriculums.ModuleHandle;
-
-<# } #>
-namespace <#= platform #>.Test.Manual.<#= DomainToolkit #>
+namespace <#= generator.Namespace() #>
 {
     [Trait("Category", "SDK")]
     public class <#= DomainEntity #>ClientTests : IClassFixture<ApiClientFixture>

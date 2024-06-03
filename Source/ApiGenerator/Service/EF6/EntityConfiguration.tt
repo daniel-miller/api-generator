@@ -7,10 +7,10 @@
 <#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
 
     var DatabaseSchema = "accounts";
-    var DatabaseTable = "TUserComment";
-    var DomainEntity = DatabaseTable;
+    var DatabaseObject = "TUserComment";
+    var DomainEntity = DatabaseObject;
 
-    var table = GetTable(DatabaseSchema, DatabaseTable);
+    var table = GetTable(DatabaseSchema, DatabaseObject);
 
     var columns = new List<DataColumn>();
     foreach (DataColumn column in table.Columns)
@@ -29,7 +29,7 @@ internal class <#= DomainEntity #>Configuration : EntityTypeConfiguration<<#= Do
 {
     public <#= DomainEntity #>Configuration()
     {
-        ToTable("<#= DatabaseTable #>", "<#= DatabaseSchema #>");
+        ToTable("<#= DatabaseObject #>", "<#= DatabaseSchema #>");
         HasKey(x => new { <#= pkColumnNames #> });
             
 <# 
@@ -47,7 +47,7 @@ for (int i = 0; i < columns.Count; i++)
     
     if (column.DataType == typeof(string))
     {
-        if (GetNativeType(DatabaseTable, column.ColumnName) == "nvarchar")
+        if (GetNativeType(DatabaseObject, column.ColumnName) == "nvarchar")
         {
             Write(".IsUnicode(true)");
         }
@@ -63,8 +63,8 @@ for (int i = 0; i < columns.Count; i++)
     }
     else if (column.DataType == typeof(decimal))
     {
-        var precision = GetColumnPrecision(DatabaseTable, column.ColumnName);
-        var scale = GetColumnScale(DatabaseTable, column.ColumnName);
+        var precision = GetColumnPrecision(DatabaseObject, column.ColumnName);
+        var scale = GetColumnScale(DatabaseObject, column.ColumnName);
         if (precision != null && scale != null)
         {
             Write($".HasPrecision({precision}, {scale})");

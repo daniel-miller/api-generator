@@ -7,22 +7,22 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ parameter type="System.String" name="DomainToolkit" #>
+<#@ parameter type="System.String" name="DomainFeature" #>
 <#@ parameter type="System.String" name="DomainEntity" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
     
-    var platform = Settings.PlatformName;
     var database = new Database();
     var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainEntity);
+    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainFeature, DomainEntity);
 
-    var generator = new Generator(endpoint);
+    var generator = new Generator(endpoint, "Contract");
     var declarations = generator.PropertyDeclarations(PropertyType.ExcludePrimaryKey);
 
 #>
 using System;
 
-namespace <#= platform #>.Contract.<#= DomainToolkit #>
+namespace <#= generator.Namespace() #>
 {
     public partial class Modify<#= DomainEntity #>
     {

@@ -63,7 +63,9 @@
     <None Include="Contract\Model.ttinclude" />
     <None Include="Contract\ModifyRequest.ttinclude" />
     <None Include="Service\CriteriaValidator.ttinclude" />
+    <None Include="Service\ViewAdapter.ttinclude" />
     <None Include="Service\ProjectionService.ttinclude" />
+    <None Include="Service\ProjectionAdapter.ttinclude" />
     <None Include="Service\TableAdapter.ttinclude" />
     <None Include="Service\TableEntity.ttinclude" />
     <None Include="Service\TableEntityConfiguration.ttinclude" />
@@ -72,7 +74,7 @@
     <None Include="Service\TableService.ttinclude" />
     <None Include="Service\TableStore.ttinclude" />
     <None Include="Service\ViewService.ttinclude" />
-    <None Include="Test\TableClientTests.ttinclude" />
+    <None Include="Contract.Test\TableClientTests.ttinclude" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Example1.tt">
