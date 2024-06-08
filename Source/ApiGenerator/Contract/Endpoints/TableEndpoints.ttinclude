@@ -39,9 +39,9 @@ foreach (var toolkit in toolkits)
             var collection = $"{endpoint.EndpointBase}/{endpoint.EndpointCollection}";
             var item = $"/{endpoint.EndpointItem}";
 
-            var count = $"/queries/count";
-            var exists = $"/queries/exists";
-            var search = $"/queries/search";
+            var count = $"/count";
+            var exists = $"/exists";
+            var search = $"/search";
 
             #>
 

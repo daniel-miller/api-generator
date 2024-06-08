@@ -74,7 +74,7 @@
     <None Include="Service\TableService.ttinclude" />
     <None Include="Service\TableStore.ttinclude" />
     <None Include="Service\ViewService.ttinclude" />
-    <None Include="Contract.Test\TableClientTests.ttinclude" />
+    <None Include="Test\TableClientTests.ttinclude" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Example1.tt">

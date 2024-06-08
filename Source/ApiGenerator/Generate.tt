@@ -25,14 +25,16 @@
         // Uncomment the code-generation function for each library you want to generate.
 
         // Contract - Requests, Responses, SDK Clients
-        GenerateContractLibrary(engine, session, endpoint, templates, $@"{output}\{platform}.Contract");
-        GenerateContractTestLibrary(engine, session, endpoint, templates, $@"{output}\{platform}.Contract.Test");
-
+        // GenerateContractLibrary(engine, session, endpoint, templates, $@"{output}\{platform}.Contract");
+        
         // Service - Entities, Adapters, Repositories
         GenerateServiceLibrary(engine, session, endpoint, templates, $@"{output}\{platform}.Service");
 
         // API - Controllers
-        GenerateApiLibrary(engine, session, endpoint, templates, $@"{output}\{platform}.Api");
+        // GenerateApiLibrary(engine, session, endpoint, templates, $@"{output}\{platform}.Api");
+
+        // Test
+        // GenerateTestLibrary(engine, session, endpoint, templates, $@"{output}\{platform}.Test");
     }
 #>
 <#+
@@ -73,13 +75,6 @@
         GenerateClass(engine, session, endpoint, $@"{source}\Clients\{endpoint.Component}Client.ttinclude", $@"{folder}\{endpoint.DomainEntity}Client.cs");
     }
 
-    public void GenerateContractTestLibrary(Engine engine, TextTemplatingSession session, Endpoint endpoint, string templates, string output)
-    {
-        var source = $@"{templates}\Contract.Test";
-        var folder = GeneratePath(output, endpoint.DomainToolkit, endpoint.DomainFeature, endpoint.Layer, endpoint.Components);
-        GenerateClass(engine, session, endpoint, $@"{source}\TableClientTests.ttinclude", $@"{folder}\{endpoint.DomainEntity}ClientTests.cs");
-    }
-
     public void GenerateServiceLibrary(Engine engine, TextTemplatingSession session, Endpoint endpoint, string templates, string output)
     {
         var source = $@"{templates}\Service";
@@ -105,6 +100,13 @@
         var source = $@"{templates}\Api";
         var folder = GeneratePath(output, endpoint.DomainToolkit, endpoint.DomainFeature, endpoint.Layer, endpoint.Components);
         GenerateClass(engine, session, endpoint, $@"{source}\{endpoint.Component}Controller.ttinclude", $@"{folder}\{endpoint.DomainEntity}Controller.cs");
+    }
+
+    public void GenerateTestLibrary(Engine engine, TextTemplatingSession session, Endpoint endpoint, string templates, string output)
+    {
+        var source = $@"{templates}\Test";
+        var folder = GeneratePath(output, endpoint.DomainToolkit, endpoint.DomainFeature, endpoint.Layer, endpoint.Components);
+        GenerateClass(engine, session, endpoint, $@"{source}\TableClientTests.ttinclude", $@"{folder}\{endpoint.DomainEntity}ClientTests.cs");
     }
 
     public void GenerateClass(Engine engine, TextTemplatingSession session, Endpoint endpoint, string input, string output)

@@ -209,7 +209,12 @@ namespace ApiGenerator.Utility
                 var typeName = Database.TypeNameOrAlias(column.DataType);
                 var datatype = typeName;
 
-                if (column.DataType != typeof(string) && column.DataType != typeof(byte[]) && (allowNull || column.AllowDBNull))
+                var isString = column.DataType == typeof(string);
+                var isByteArray = column.DataType == typeof(byte[]);
+                
+                var isRequired = !allowNull && !column.AllowDBNull;
+
+                if (!isRequired && (isCore || !(isString || isByteArray)))
                     datatype += "?";
 
                 if (declarations != string.Empty && lasttype != typeName)
@@ -217,7 +222,7 @@ namespace ApiGenerator.Utility
 
                 declarations += indent + "public " + datatype + " " + column.ColumnName + " { get; set; }";
 
-                if ((column.DataType == typeof(string) || column.DataType == typeof(byte[])) && isCore)
+                if (isCore && (isString || isByteArray) && !datatype.EndsWith("?"))
                     declarations += " = null!;";
 
                 if (i < columns.Count - 1)
