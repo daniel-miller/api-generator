@@ -1,21 +1,29 @@
-﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ output extension=".txt" #>
-<#@ assembly name="System.Core" #>
-<#@ import namespace="System.Linq" #>
-<#@ import namespace="System.Text" #>
+<#@ assembly name="System.Data" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+<#@ import namespace="System.Data" #>
+<#@ import namespace="Microsoft.VisualStudio.TextTemplating" #>
+<#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
+<#@ import namespace="ApiGenerator.Utility" #>
+<#
+    
+    var engine = new Engine();
+    var session = new TextTemplatingSession();
+    var templates = Host.ResolveAssemblyReference("$(ProjectDir)");
 
-    var DatabaseSchema = "accounts";
-    var DatabaseObject = "TUserComment";
-    var DomainEntity = DatabaseObject;
-
-    var table = GetTable(DatabaseSchema, DatabaseObject);
+    var output = Settings.OutputDirectory;
+    var platform = Settings.PlatformName;;
+    
+    var database = new Database();
+    var endpoints = database.GetEndpoints();
+    var endpoint = endpoints.GetEndpoint("Survey", "Responses", "Response");
+    var table = database.GetTable(endpoint.DatabaseSchema, endpoint.DatabaseObject);
 
     var columns = new List<DataColumn>();
     foreach (DataColumn column in table.Columns)
         columns.Add(column);
-    columns.Sort(new EntityColumnComparer());
+    columns.Sort(new Database.EntityColumnComparer());
 
     var pkColumnNames = "";
     for (int i = 0; i < table.PrimaryKey.Length; i++)
@@ -25,11 +33,11 @@
         pkColumnNames += "x." + table.PrimaryKey[i].ColumnName;
     }
 #>
-internal class <#= DomainEntity #>Configuration : EntityTypeConfiguration<<#= DomainEntity #>>
+internal class <#= endpoint.DomainEntity #>Configuration : EntityTypeConfiguration<<#= endpoint.DomainEntity #>>
 {
-    public <#= DomainEntity #>Configuration()
+    public <#= endpoint.DomainEntity #>Configuration()
     {
-        ToTable("<#= DatabaseObject #>", "<#= DatabaseSchema #>");
+        ToTable("<#= endpoint.DatabaseObject #>", "<#= endpoint.DatabaseSchema #>");
         HasKey(x => new { <#= pkColumnNames #> });
             
 <# 
@@ -47,7 +55,7 @@ for (int i = 0; i < columns.Count; i++)
     
     if (column.DataType == typeof(string))
     {
-        if (GetNativeType(DatabaseObject, column.ColumnName) == "nvarchar")
+        if (database.GetNativeType(endpoint.DatabaseObject, column.ColumnName) == "nvarchar")
         {
             Write(".IsUnicode(true)");
         }
@@ -63,8 +71,8 @@ for (int i = 0; i < columns.Count; i++)
     }
     else if (column.DataType == typeof(decimal))
     {
-        var precision = GetColumnPrecision(DatabaseObject, column.ColumnName);
-        var scale = GetColumnScale(DatabaseObject, column.ColumnName);
+        var precision = database.GetColumnPrecision(endpoint.DatabaseObject, column.ColumnName);
+        var scale = database.GetColumnScale(endpoint.DatabaseObject, column.ColumnName);
         if (precision != null && scale != null)
         {
             Write($".HasPrecision({precision}, {scale})");

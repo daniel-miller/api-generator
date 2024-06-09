@@ -1,23 +1,32 @@
-﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ output extension=".txt" #>
-<#@ assembly name="System.Core" #>
-<#@ import namespace="System.Linq" #>
-<#@ import namespace="System.Text" #>
+<#@ assembly name="System.Data" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ include file="$(ProjectDir)\Include.ttinclude" once="true" #><#
+<#@ import namespace="System.Data" #>
+<#@ import namespace="Microsoft.VisualStudio.TextTemplating" #>
+<#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
+<#@ import namespace="ApiGenerator.Utility" #>
+<#
     
-    var DatabaseSchema = "accounts";
-    var DatabaseObject = "QOrganization";
-    var DomainEntity = DatabaseObject;
+    var engine = new Engine();
+    var session = new TextTemplatingSession();
+    var templates = Host.ResolveAssemblyReference("$(ProjectDir)");
 
-    var table = GetTable(DatabaseSchema, DatabaseObject);
+    var output = Settings.OutputDirectory;
+    var platform = Settings.PlatformName;;
+    
+    var database = new Database();
+    var endpoints = database.GetEndpoints();
+    var endpoint = endpoints.GetEndpoint("Survey", "Responses", "Response");
+    var table = database.GetTable(endpoint.DatabaseSchema, endpoint.DatabaseObject);
+
     var columns = new List<DataColumn>();
     foreach (DataColumn column in table.Columns)
         columns.Add(column);
-    columns.Sort(new EntityColumnComparer());
+    columns.Sort(new Database.EntityColumnComparer());
 
 #>
-public class <#= DomainEntity #>
+public class <#= endpoint.DomainEntity #>
 {
 <#
 string lasttype = null;
@@ -25,7 +34,7 @@ string lasttype = null;
 for (int i = 0; i < columns.Count; i++) 
 { 
     var column = columns[i];
-    var typeName = TypeNameOrAlias(column.DataType);
+    var typeName = Database.TypeNameOrAlias(column.DataType);
     var datatype = typeName;
     
     if (column.AllowDBNull && datatype != "string")
