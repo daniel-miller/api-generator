@@ -23,8 +23,8 @@ Next, create a table in your database in which to define your API endpoints. The
 ```
 create table databases.TApiEndpoint
 (
-    Component varchar(100) not null
-  , DatabaseSchema varchar(100) not null
+    Component varchar(100) not null -- Table | Projection | View | Procedure
+  , DatabaseSchema varchar(100) not null 
   , DatabaseObject varchar(100) not null
   , PrimaryKey varchar(100) not null
   , PrimaryKeySize int not null
@@ -46,12 +46,42 @@ Finally, select the template named `Generate.tt` and click "Run Custom Tool". Yo
 
 ### Missing Specifications
 
-I use this query to identify database tables for which there are no specifications in my ApiEndpoint table. These represent "missing" endpoints, if you want your API to provide a full-coverage data access layer to your database.
+I use this query to identify database objects for which there are no specifications in my ApiEndpoint table. These represent missing endpoints, if you want your API to provide a full-coverage data access layer to your database.
 
 ```
-select * from INFORMATION_SCHEMA.TABLES as t where t.TABLE_TYPE = 'Base Table' and not exists 
-(select * from databases.TApiEndpoint as e
- where TABLE_SCHEMA = e.DatabaseSchema and t.TABLE_NAME = e.DatabaseTable)
+with cte as (
+                select 'Table'        as Component
+                     , t.TABLE_SCHEMA as DatabaseSchema
+                     , t.TABLE_NAME   as DatabaseObject
+                from INFORMATION_SCHEMA.TABLES as t
+                where t.TABLE_TYPE = 'Base Table'
+                union
+                select 'View'
+                     , t.TABLE_SCHEMA
+                     , t.TABLE_NAME as DatabaseObject
+                from INFORMATION_SCHEMA.TABLES as t
+                where t.TABLE_TYPE <> 'Base Table'
+                union
+                select 'Procedure'
+                     , ROUTINE_SCHEMA
+                     , ROUTINE_NAME
+                from INFORMATION_SCHEMA.ROUTINES
+                where ROUTINE_TYPE = 'PROCEDURE'
+            )
+select cte.Component
+     , cte.DatabaseSchema
+     , cte.DatabaseObject
+from cte
+where DatabaseObject not in ( 'TApiEndpoint' )
+      and not exists (
+                         select *
+                         from databases.TApiEndpoint as e
+                         where cte.DatabaseSchema = e.DatabaseSchema
+                               and cte.DatabaseObject = e.DatabaseObject
+                     )
+order by Component
+       , DatabaseSchema
+       , DatabaseObject
 ```
 
 ### Dead-Ends
@@ -59,15 +89,19 @@ select * from INFORMATION_SCHEMA.TABLES as t where t.TABLE_TYPE = 'Base Table' a
 I use this query to identify API endpoint specifications for which there is no corresponding database table. These represent "broken" endpoints.
 
 ```
-select * from databases.TApiEndpoint as e where not exists 
-(select * from INFORMATION_SCHEMA.TABLES as t
- where TABLE_SCHEMA = e.DatabaseSchema and t.TABLE_NAME = e.DatabaseTable)
+select e.DatabaseSchema
+     , e.DatabaseObject
+from databases.TApiEndpoint as e
+where not exists (
+                     select *
+                     from INFORMATION_SCHEMA.TABLES as t
+                     where TABLE_SCHEMA = e.DatabaseSchema
+                           and t.TABLE_NAME = e.DatabaseObject
+                 )
+order by e.DatabaseSchema
+       , e.DatabaseObject
 ```
 
 ### Entity Framework 6
 
-You can generate an entity class for Entity Framework 6 (in a .NET Framework 4.8 library) using the text template `Persistence/EF6/Entity.tt`. Here are the steps:
-
-1. In the `Settings.json` file, update the settings with your database name.
-2. In the `Entity.tt` file, update the DatabaseSchema and DatabaseTable variables.
-3. Click Save and the generated class is output to `Entity.txt`.
+You can generate an entity class for Entity Framework 6 (in a .NET Framework 4.8 library) using the text template `Service/EF6/Entity.tt`.
