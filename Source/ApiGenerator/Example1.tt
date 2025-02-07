@@ -12,10 +12,10 @@
     var platform = Settings.PlatformName;;
     
     var database = new Database();
-    var endpoints = database.GetEndpoints();
+    var entities = database.GetEntities();
 
-    foreach (var endpoint in endpoints)
+    foreach (var entity in entities)
     {
-        WriteLine($"{endpoint.DatabaseSchema}.{endpoint.DatabaseObject}: {endpoint.DomainToolkit}/{endpoint.DomainFeature}/{endpoint.DomainEntity}");
+        WriteLine($"{entity.StorageSchema}.{entity.StorageTable}: {entity.ComponentName}/{entity.ComponentFeature}/{entity.EntityName}");
     }
 #>

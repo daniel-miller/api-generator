@@ -1,0 +1,57 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".txt" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ import namespace="System.Data" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ parameter type="System.String" name="ComponentName" #>
+<#@ parameter type="System.String" name="ComponentFeature" #>
+<#@ parameter type="System.String" name="EntityName" #>
+<#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
+<#@ import namespace="ApiGenerator.Utility" #><#
+    
+    var EntityNamePlural = Inflector.PluralizeNoun(EntityName);
+
+    var platform = Settings.PlatformName;
+    var database = new Database();
+    var entities = database.GetEntities();
+    var entity = entities.GetEntity(ComponentName, ComponentFeature, EntityName);
+    
+    var generator = new Generator(entity, "Contract");
+    var createDeclarations = generator.PropertyDeclarations(PropertyType.All);
+    var deleteDeclarations = generator.PropertyDeclarations(PropertyType.OnlyPrimaryKey);
+    var modifyDeclarations = generator.PropertyDeclarations(PropertyType.All);
+
+#>
+using System;
+using System.Collections.Generic;
+
+namespace <#= generator.Namespace() #>
+{
+    public class Create<#= EntityName #>
+    {
+<#= createDeclarations #>
+    }
+
+    public class Modify<#= EntityName #>
+    {
+<#= modifyDeclarations #>
+    }
+
+    public class Delete<#= EntityName #>
+    {
+<#= deleteDeclarations #>
+    }
+
+    public class Import<#= EntityNamePlural #>
+    {
+        public ICollection<Create<#= EntityName #>> Items { get; set; }
+    }
+
+    public class Purge<#= EntityNamePlural #>
+    {
+        public ICollection<Delete<#= EntityName #>> Items { get; set; }
+    }
+}

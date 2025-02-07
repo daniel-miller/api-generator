@@ -6,22 +6,27 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="DomainToolkit" #>
-<#@ parameter type="System.String" name="DomainFeature" #>
-<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ parameter type="System.String" name="ComponentName" #>
+<#@ parameter type="System.String" name="ComponentFeature" #>
+<#@ parameter type="System.String" name="EntityName" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
     
+    var EntityNamePlural = Inflector.PluralizeNoun(EntityName);
+
     var platform = Settings.PlatformName;
     var database = new Database();
-    var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainFeature, DomainEntity);
-    
-    var generator = new Generator(endpoint, "Contract");
-    var pkParameters = generator.PrimaryKeyMethodParameters();
-    var pkArguments = generator.PrimaryKeyMethodArguments();
+    var entities = database.GetEntities();
+    var entity = entities.GetEntity(ComponentName, ComponentFeature, EntityName);
 
-    var apiRoute = "Endpoints." + generator.ApiCollection();
+    var generator = new Generator(entity, "Contract");
+    var pkParameters = generator.PrimaryKeyMethodParameters(true);
+    var pkArguments = generator.PrimaryKeyMethodArguments(true);
+    var assertArguments = generator.PrimaryKeyMethodArguments(false, "assert");
+    var deleteArguments = generator.PrimaryKeyMethodArguments(false, "delete");
+    var modifyArguments = generator.PrimaryKeyMethodArguments(false, "modify");
+
+    var apiRoute = "Endpoints." + generator.CollectionSlug();
 
 #>
 using System;
@@ -32,54 +37,51 @@ using Common;
 
 namespace <#= generator.Namespace() #>
 {
-    public class <#= DomainEntity #>Client
+    public class <#= EntityName #>Client
     {
-        private readonly SdkClient _sdk;
+        private readonly ApiClient _api;
 
-        public <#= DomainEntity #>Client(IApiClientFactory factory)
-            => _sdk = new SdkClient(factory);
+        public <#= EntityName #>Client(IApiClientFactory factory)
+            => _api = new ApiClient(factory);
 
-        public Pagination GetPagination()
-            => _sdk.Pagination;
+        // Asynchronous (Queries)
 
-        // Asynchronous
+        public async Task<bool> AssertAsync(Assert<#= EntityName #> assert)
+            => await _api.Assert(<#= apiRoute #>.Assert, <#= assertArguments #>);
 
-        public async Task<<#= DomainEntity #>Model> GetAsync(<#= pkParameters #>)
-            => await _sdk.Get<<#= DomainEntity #>Model>(<#= apiRoute #>.Collection, <#= pkArguments #>);
+        public async Task<IEnumerable<<#= EntityName #>Model>> CollectAsync(Collect<#= EntityNamePlural #> collect)
+            => await _api.HttpGet<IEnumerable<<#= EntityName #>Model>>(<#= apiRoute #>.Collection, _api.ToDictionary(collect.Criteria));
 
-        public async Task<IEnumerable<<#= DomainEntity #>Model>> ListAsync(<#= DomainEntity #>Criteria criteria)
-            => await _sdk.List<<#= DomainEntity #>Model>(<#= apiRoute #>.Collection, _sdk.ToDictionary(criteria));
-        
-        public async Task<IEnumerable<<#= DomainEntity #>Model>> ExportAsync(<#= DomainEntity #>Criteria criteria)
-            => await _sdk.Export<<#= DomainEntity #>Model>(<#= apiRoute #>.Collection, _sdk.ToDictionary(criteria));
+        public async Task<int> CountAsync(Count<#= EntityNamePlural #> count)
+            => await _api.Count(<#= apiRoute #>.Count, _api.ToDictionary(count.Criteria));
 
-        public async Task<int> CountAsync(<#= DomainEntity #>Criteria criteria)
-            => await _sdk.Count(<#= apiRoute #>.Count, _sdk.ToDictionary(criteria));
+        public async Task<IEnumerable<<#= EntityName #>Model>> ExportAsync(Export<#= EntityNamePlural #> export)
+            => await _api.HttpPost<IEnumerable<<#= EntityName #>Model>>(<#= apiRoute #>.Export, _api.ToDictionary(export.Criteria));
 
-        public async Task<bool> ExistsAsync(<#= pkParameters #>)
-            => await _sdk.Exists(<#= apiRoute #>.Collection, <#= pkArguments #>);
+        public async Task<<#= EntityName #>Model> FetchAsync(<#= pkParameters #>)
+            => await _api.HttpGet<<#= EntityName #>Model>(<#= apiRoute #>.Collection, <#= pkArguments #>);
 
-        public async Task<IEnumerable<<#= DomainEntity #>Handle>> SearchAsync(<#= DomainEntity #>Criteria criteria)
-            => await _sdk.Search<<#= DomainEntity #>Handle>(<#= apiRoute #>.Search, _sdk.ToDictionary(criteria));
+        public async Task<IEnumerable<<#= EntityName #>Match>> SearchAsync(Search<#= EntityNamePlural #> search)
+            => await _api.HttpGet<IEnumerable<<#= EntityName #>Match>>(<#= apiRoute #>.Search, _api.ToDictionary(search.Criteria));
 
-        // Synchronous
+        // Synchronous (Queries)
 
-        public <#= DomainEntity #>Model Get(<#= pkParameters #>)
-            => Task.Run(() => GetAsync(<#= pkArguments #>)).GetAwaiter().GetResult();
+        public bool Assert(Assert<#= EntityName #> assert)
+            => Task.Run(() => _api.Assert(<#= apiRoute #>.Assert, <#= assertArguments #>)).GetAwaiter().GetResult();
 
-        public IEnumerable<<#= DomainEntity #>Model> List(<#= DomainEntity #>Criteria criteria)
-            => Task.Run(() => ListAsync(criteria)).GetAwaiter().GetResult();
-        
-        public IEnumerable<<#= DomainEntity #>Model> Export(<#= DomainEntity #>Criteria criteria)
-            => Task.Run(() => ExportAsync(criteria)).GetAwaiter().GetResult();
+        public IEnumerable<<#= EntityName #>Model> Collect(Collect<#= EntityNamePlural #> collect)
+            => Task.Run(() => _api.HttpGet<IEnumerable<<#= EntityName #>Model>>(<#= apiRoute #>.Collection, _api.ToDictionary(collect.Criteria))).GetAwaiter().GetResult();
 
-        public int Count(<#= DomainEntity #>Criteria criteria)
-            => Task.Run(() => CountAsync(criteria)).GetAwaiter().GetResult();
+        public int Count(Count<#= EntityNamePlural #> count)
+            => Task.Run(() => _api.Count(<#= apiRoute #>.Count, _api.ToDictionary(count.Criteria))).GetAwaiter().GetResult();
 
-        public bool Exists(<#= pkParameters #>)
-            => Task.Run(() => ExistsAsync(<#= pkArguments #>)).GetAwaiter().GetResult();
+        public IEnumerable<<#= EntityName #>Model> Export(Export<#= EntityNamePlural #> export)
+            => Task.Run(() => _api.HttpPost<IEnumerable<<#= EntityName #>Model>>(<#= apiRoute #>.Export, _api.ToDictionary(export.Criteria))).GetAwaiter().GetResult();
 
-        public IEnumerable<<#= DomainEntity #>Handle> Search(<#= DomainEntity #>Criteria criteria)
-            => Task.Run(() => SearchAsync(criteria)).GetAwaiter().GetResult();
+        public <#= EntityName #>Model Fetch(<#= pkParameters #>)
+            => Task.Run(() => _api.HttpGet<<#= EntityName #>Model>(<#= apiRoute #>.Collection, <#= pkArguments #>)).GetAwaiter().GetResult();
+
+        public IEnumerable<<#= EntityName #>Match> Search(Search<#= EntityNamePlural #> search)
+            => Task.Run(() => _api.HttpGet<IEnumerable<<#= EntityName #>Match>>(<#= apiRoute #>.Search, _api.ToDictionary(search.Criteria))).GetAwaiter().GetResult();
     }   
 }

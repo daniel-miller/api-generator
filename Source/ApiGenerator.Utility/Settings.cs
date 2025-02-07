@@ -2,8 +2,8 @@
 {
     public static class Settings
     {
-        public static string DatabaseName = "DATABASE";
-        public static string OutputDirectory = "C:\\TEMP";
-        public static string PlatformName = "APP";
+        public static string DatabaseName = "E01_Local_Shift";
+        public static string OutputDirectory = "d:\\temp\\api";
+        public static string PlatformName = "Shift";
     }
 }

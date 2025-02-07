@@ -6,19 +6,18 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="DomainToolkit" #>
-<#@ parameter type="System.String" name="DomainFeature" #>
-<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ parameter type="System.String" name="ComponentName" #>
+<#@ parameter type="System.String" name="ComponentFeature" #>
+<#@ parameter type="System.String" name="EntityName" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
     
     var platform = Settings.PlatformName;
     var database = new Database();
-    var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainFeature, DomainEntity);
-    var entities = Inflector.PluralizeNoun(endpoint.DomainEntity);
+    var entity = database.GetEntities().GetEntity(ComponentName, ComponentFeature, EntityName);
+    var entities = Inflector.PluralizeNoun(entity.EntityName);
 
-    var generator = new Generator(endpoint, "Service");
+    var generator = new Generator(entity, "Service");
     var parameters = generator.PrimaryKeyMethodParameters();
     var arguments = generator.PrimaryKeyMethodArguments();
     var expression = generator.PrimaryKeyEqualityExpression();
@@ -32,32 +31,32 @@ using FluentValidation;
 
 namespace <#= generator.Namespace() #>;
 
-public interface I<#= DomainEntity #>Service
+public interface I<#= EntityName #>Service
 {
-    Task<<#= DomainEntity #>Model?> GetAsync(<#= parameters #>, CancellationToken token);
-    Task<IEnumerable<<#= DomainEntity #>Model>> ListAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token);
+    Task<<#= EntityName #>Model?> GetAsync(<#= parameters #>, CancellationToken token);
+    Task<IEnumerable<<#= EntityName #>Model>> ListAsync(<#= EntityName #>Criteria criteria, CancellationToken token);
 
-    Task<bool> CreateAsync(Create<#= DomainEntity #> create, CancellationToken token);
-    Task<bool> ModifyAsync(<#= parameters #>, Modify<#= DomainEntity #> modify, CancellationToken token);
+    Task<bool> CreateAsync(Create<#= EntityName #> create, CancellationToken token);
+    Task<bool> ModifyAsync(<#= parameters #>, Modify<#= EntityName #> modify, CancellationToken token);
     Task<bool> DeleteAsync(<#= parameters #>, CancellationToken token);
 
-    Task<IEnumerable<<#= DomainEntity #>Handle>> SearchAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token);
+    Task<IEnumerable<<#= EntityName #>Handle>> SearchAsync(<#= EntityName #>Criteria criteria, CancellationToken token);
     Task<bool> ExistsAsync(<#= parameters #>, CancellationToken token);
-    Task<int> CountAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token);
+    Task<int> CountAsync(<#= EntityName #>Criteria criteria, CancellationToken token);
 }
 
-public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
+public class <#= EntityName #>Service : I<#= EntityName #>Service
 {
-    private readonly <#= DomainEntity #>Search _search;
-    private readonly <#= DomainEntity #>Store _store;
+    private readonly <#= EntityName #>Search _search;
+    private readonly <#= EntityName #>Store _store;
 
-    private readonly <#= DomainEntity #>Adapter _adapter = new <#= DomainEntity #>Adapter();
+    private readonly <#= EntityName #>Adapter _adapter = new <#= EntityName #>Adapter();
 
-    private readonly IValidator<<#= DomainEntity #>Criteria> _criteriaValidator;
-    private readonly IValidator<<#= DomainEntity #>Entity> _entityValidator;
+    private readonly IValidator<<#= EntityName #>Criteria> _criteriaValidator;
+    private readonly IValidator<<#= EntityName #>Entity> _entityValidator;
 
-    public <#= DomainEntity #>Service(<#= DomainEntity #>Search search, <#= DomainEntity #>Store store, 
-        IValidator<<#= DomainEntity #>Criteria> criteriaValidator, IValidator<<#= DomainEntity #>Entity> entityValidator)
+    public <#= EntityName #>Service(<#= EntityName #>Search search, <#= EntityName #>Store store, 
+        IValidator<<#= EntityName #>Criteria> criteriaValidator, IValidator<<#= EntityName #>Entity> entityValidator)
     {
         _search = search;
         _store = store;
@@ -66,14 +65,14 @@ public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
         _entityValidator = entityValidator;
     }
 
-    public async Task<<#= DomainEntity #>Model?> GetAsync(<#= parameters #>, CancellationToken token)
+    public async Task<<#= EntityName #>Model?> GetAsync(<#= parameters #>, CancellationToken token)
     {
         var entity = await _search.GetAsync(<#= arguments #>, token);
 
         return entity != null ? _adapter.ToModel(entity) : null;
     }
 
-    public async Task<IEnumerable<<#= DomainEntity #>Model>> ListAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
+    public async Task<IEnumerable<<#= EntityName #>Model>> ListAsync(<#= EntityName #>Criteria criteria, CancellationToken token)
     {
         await _criteriaValidator.ValidateAndThrowAsync(criteria, token);
 
@@ -82,7 +81,7 @@ public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
         return _adapter.ToModel(entities);
     }
 
-    public async Task<bool> CreateAsync(Create<#= DomainEntity #> create, CancellationToken token)
+    public async Task<bool> CreateAsync(Create<#= EntityName #> create, CancellationToken token)
     {
         var entity = _adapter.ToEntity(create);
 
@@ -91,7 +90,7 @@ public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
         return await _store.InsertAsync(entity, token);
     }
 
-    public async Task<bool> ModifyAsync(<#= parameters #>, Modify<#= DomainEntity #> modify, CancellationToken token)
+    public async Task<bool> ModifyAsync(<#= parameters #>, Modify<#= EntityName #> modify, CancellationToken token)
     {
         var entity = await _search.GetAsync(<#= arguments #>, token);
 
@@ -110,7 +109,7 @@ public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
         return await _store.DeleteAsync(<#= arguments #>, token);
     }
 
-    public async Task<int> CountAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
+    public async Task<int> CountAsync(<#= EntityName #>Criteria criteria, CancellationToken token)
     {
         return await _search.CountAsync(criteria, token);
     }
@@ -120,7 +119,7 @@ public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
         return await _search.ExistsAsync(<#= arguments #>, token);
     }
 
-    public async Task<IEnumerable<<#= DomainEntity #>Handle>> SearchAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
+    public async Task<IEnumerable<<#= EntityName #>Handle>> SearchAsync(<#= EntityName #>Criteria criteria, CancellationToken token)
     {
         await _criteriaValidator.ValidateAndThrowAsync(criteria, token);
 

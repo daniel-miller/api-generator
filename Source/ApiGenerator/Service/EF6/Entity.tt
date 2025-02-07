@@ -15,10 +15,12 @@
     var output = Settings.OutputDirectory;
     var platform = Settings.PlatformName;;
     
+    var schemaName = "dbo";
+    var tableName  = "BInventorySnapshotIndex";
+    var entityName = "BInventorySnapshotIndex";
+
     var database = new Database();
-    var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint("Survey", "Responses", "Response");
-    var table = database.GetTable(endpoint.DatabaseSchema, endpoint.DatabaseObject);
+    var table = database.GetTable(schemaName, tableName);
 
     var columns = new List<DataColumn>();
     foreach (DataColumn column in table.Columns)
@@ -26,7 +28,7 @@
     columns.Sort(new Database.EntityColumnComparer());
 
 #>
-public class <#= endpoint.DomainEntity #>
+public class <#= entityName #>
 {
 <#
 string lasttype = null;

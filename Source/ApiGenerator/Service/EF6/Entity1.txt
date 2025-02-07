@@ -1,0 +1,10 @@
+﻿public class BInventorySnapshotIndex
+{
+    public string TimestampWho { get; set; }
+
+    public int SnapshotNumber { get; set; }
+
+    public DateTimeOffset TimestampWhen { get; set; }
+
+    public DateTime SnapshotDate { get; set; }
+}

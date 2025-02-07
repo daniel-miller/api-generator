@@ -15,10 +15,12 @@
     var output = Settings.OutputDirectory;
     var platform = Settings.PlatformName;;
     
+    var schemaName = "dbo";
+    var tableName  = "BInventorySnapshot";
+    var entityName = "BInventorySnapshot";
+    
     var database = new Database();
-    var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint("Survey", "Responses", "Response");
-    var table = database.GetTable(endpoint.DatabaseSchema, endpoint.DatabaseObject);
+    var table = database.GetTable(schemaName, tableName);
 
     var columns = new List<DataColumn>();
     foreach (DataColumn column in table.Columns)
@@ -33,11 +35,11 @@
         pkColumnNames += "x." + table.PrimaryKey[i].ColumnName;
     }
 #>
-internal class <#= endpoint.DomainEntity #>Configuration : EntityTypeConfiguration<<#= endpoint.DomainEntity #>>
+internal class <#= entityName #>Configuration : EntityTypeConfiguration<<#= entityName #>>
 {
-    public <#= endpoint.DomainEntity #>Configuration()
+    public <#= entityName #>Configuration()
     {
-        ToTable("<#= endpoint.DatabaseObject #>", "<#= endpoint.DatabaseSchema #>");
+        ToTable("<#= tableName #>", "<#= schemaName #>");
         HasKey(x => new { <#= pkColumnNames #> });
             
 <# 
@@ -55,7 +57,7 @@ for (int i = 0; i < columns.Count; i++)
     
     if (column.DataType == typeof(string))
     {
-        if (database.GetNativeType(endpoint.DatabaseObject, column.ColumnName) == "nvarchar")
+        if (database.GetNativeType(tableName, column.ColumnName) == "nvarchar")
         {
             Write(".IsUnicode(true)");
         }
@@ -71,8 +73,8 @@ for (int i = 0; i < columns.Count; i++)
     }
     else if (column.DataType == typeof(decimal))
     {
-        var precision = database.GetColumnPrecision(endpoint.DatabaseObject, column.ColumnName);
-        var scale = database.GetColumnScale(endpoint.DatabaseObject, column.ColumnName);
+        var precision = database.GetColumnPrecision(tableName, column.ColumnName);
+        var scale = database.GetColumnScale(tableName, column.ColumnName);
         if (precision != null && scale != null)
         {
             Write($".HasPrecision({precision}, {scale})");

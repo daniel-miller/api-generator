@@ -15,12 +15,12 @@ namespace ApiGenerator.Utility
             return connection;
         }
 
-        public EndpointList GetEndpoints(string databaseObject = null)
+        public EntityList GetEntities(string databaseObject = null)
         {
             using (var connection = OpenDatabaseConnection())
             {
-                var where = databaseObject == null ? "" : $"WHERE Component = '{databaseObject}'";
-                var select = $"SELECT * FROM databases.TApiEndpoint {where} ORDER BY DomainToolkit, DomainFeature, DomainEntity";
+                var where = databaseObject == null ? "" : $"WHERE StorageStructure = '{databaseObject}'";
+                var select = $"SELECT * FROM metadata.TEntity {where} ORDER BY ComponentName, ComponentFeature, EntityName";
 
                 System.Diagnostics.Debug.WriteLine(select);
 
@@ -30,27 +30,29 @@ namespace ApiGenerator.Utility
                     da.Fill(table);
                 }
 
-                var list = new EndpointList();
+                var list = new EntityList();
                 foreach (DataRow row in table.Rows)
                 {
-                    var endpoint = new Endpoint
+                    var entity = new Entity
                     {
-                        Component = (string)row["Component"],
-                        DatabaseSchema = (string)row["DatabaseSchema"],
-                        DatabaseObject = (string)row["DatabaseObject"],
-                        PrimaryKey = (string)row["PrimaryKey"],
-                        PrimaryKeySize = (int)row["PrimaryKeySize"],
+                        StorageStructure = (string)row["StorageStructure"],
+                        StorageSchema = (string)row["StorageSchema"],
+                        StorageTable = (string)row["StorageTable"],
+                        StorageKey = (string)row["StorageKey"],
 
-                        DomainToolkit = (string)row["DomainToolkit"],
-                        DomainFeature = (string)row["DomainFeature"],
-                        DomainEntity = (string)row["DomainEntity"],
+                        FutureStorageTable = (string)row["FutureStorageTable"],
 
-                        EndpointBase = (string)row["EndpointBase"],
-                        EndpointCollection = (string)row["EndpointCollection"],
-                        EndpointItem = (string)row["EndpointItem"]
+                        ComponentType = (string)row["ComponentType"],
+                        ComponentName = (string)row["ComponentName"],
+                        ComponentFeature = (string)row["ComponentFeature"],
+
+                        EntityName = (string)row["EntityName"],
+
+                        CollectionSlug = (string)row["CollectionSlug"],
+                        CollectionKey = (string)row["CollectionKey"]
                     };
 
-                    list.Add(endpoint);
+                    list.Add(entity);
                 }
                 return list;
             }

@@ -6,19 +6,18 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="DomainToolkit" #>
-<#@ parameter type="System.String" name="DomainFeature" #>
-<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ parameter type="System.String" name="ComponentName" #>
+<#@ parameter type="System.String" name="ComponentFeature" #>
+<#@ parameter type="System.String" name="EntityName" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
     
     var platform = Settings.PlatformName;
     var database = new Database();
-    var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainFeature, DomainEntity);
-    var entities = Inflector.PluralizeNoun(endpoint.DomainEntity);
+    var entity = database.GetEntities().GetEntity(ComponentName, ComponentFeature, EntityName);
+    var entities = Inflector.PluralizeNoun(entity.EntityName);
 
-    var generator = new Generator(endpoint, "Service");
+    var generator = new Generator(entity, "Service");
     var expression = generator.PrimaryKeyEqualityExpression();
     var pkParameters = generator.PrimaryKeyMethodParameters();
     var pkArguments = generator.PrimaryKeyMethodArguments();
@@ -30,38 +29,38 @@ using FluentValidation;
 
 namespace <#= generator.Namespace() #>;
 
-public interface I<#= DomainEntity #>Service
+public interface I<#= EntityName #>Service
 {
-    Task<<#= DomainEntity #>Model?> GetAsync(<#= pkParameters #>, CancellationToken token);
-    Task<IEnumerable<<#= DomainEntity #>Model>> ListAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token);
+    Task<<#= EntityName #>Model?> GetAsync(<#= pkParameters #>, CancellationToken token);
+    Task<IEnumerable<<#= EntityName #>Model>> ListAsync(<#= EntityName #>Criteria criteria, CancellationToken token);
 
-    Task<IEnumerable<<#= DomainEntity #>Handle>> SearchAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token);
+    Task<IEnumerable<<#= EntityName #>Handle>> SearchAsync(<#= EntityName #>Criteria criteria, CancellationToken token);
     Task<bool> ExistsAsync(<#= pkParameters #>, CancellationToken token);
-    Task<int> CountAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token);
+    Task<int> CountAsync(<#= EntityName #>Criteria criteria, CancellationToken token);
 }
 
-public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
+public class <#= EntityName #>Service : I<#= EntityName #>Service
 {
-    private readonly <#= DomainEntity #>Search _search;
+    private readonly <#= EntityName #>Search _search;
 
-    private readonly <#= DomainEntity #>Adapter _adapter = new <#= DomainEntity #>Adapter();
+    private readonly <#= EntityName #>Adapter _adapter = new <#= EntityName #>Adapter();
 
-    private readonly IValidator<<#= DomainEntity #>Criteria> _criteriaValidator;
+    private readonly IValidator<<#= EntityName #>Criteria> _criteriaValidator;
 
-    public <#= DomainEntity #>Service(<#= DomainEntity #>Search search, IValidator<<#= DomainEntity #>Criteria> criteriaValidator)
+    public <#= EntityName #>Service(<#= EntityName #>Search search, IValidator<<#= EntityName #>Criteria> criteriaValidator)
     {
         _search = search;
         _criteriaValidator = criteriaValidator;
     }
 
-    public async Task<<#= DomainEntity #>Model?> GetAsync(<#= pkParameters #>, CancellationToken token)
+    public async Task<<#= EntityName #>Model?> GetAsync(<#= pkParameters #>, CancellationToken token)
     {
         var entity = await _search.GetAsync(<#= pkArguments #>, token);
 
         return entity != null ? _adapter.ToModel(entity) : null;
     }
 
-    public async Task<IEnumerable<<#= DomainEntity #>Model>> ListAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
+    public async Task<IEnumerable<<#= EntityName #>Model>> ListAsync(<#= EntityName #>Criteria criteria, CancellationToken token)
     {
         await _criteriaValidator.ValidateAndThrowAsync(criteria, token);
 
@@ -70,7 +69,7 @@ public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
         return _adapter.ToModel(entities);
     }
 
-    public async Task<int> CountAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
+    public async Task<int> CountAsync(<#= EntityName #>Criteria criteria, CancellationToken token)
     {
         return await _search.CountAsync(criteria, token);
     }
@@ -80,7 +79,7 @@ public class <#= DomainEntity #>Service : I<#= DomainEntity #>Service
         return await _search.ExistsAsync(<#= pkArguments #>, token);
     }
 
-    public async Task<IEnumerable<<#= DomainEntity #>Handle>> SearchAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
+    public async Task<IEnumerable<<#= EntityName #>Handle>> SearchAsync(<#= EntityName #>Criteria criteria, CancellationToken token)
     {
         await _criteriaValidator.ValidateAndThrowAsync(criteria, token);
 

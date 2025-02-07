@@ -6,19 +6,18 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="DomainToolkit" #>
-<#@ parameter type="System.String" name="DomainFeature" #>
-<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ parameter type="System.String" name="ComponentName" #>
+<#@ parameter type="System.String" name="ComponentFeature" #>
+<#@ parameter type="System.String" name="EntityName" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
     
     var platform = Settings.PlatformName;
     var database = new Database();
-    var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainFeature, DomainEntity);
-    var entities = Inflector.PluralizeNoun(DomainEntity);
+    var entity = database.GetEntities().GetEntity(ComponentName, ComponentFeature, EntityName);
+    var entities = Inflector.PluralizeNoun(EntityName);
 
-    var generator = new Generator(endpoint, "Api");
+    var generator = new Generator(entity, "Api");
     var parameters = generator.PrimaryKeyMethodParameters();
     var arguments = generator.PrimaryKeyMethodArguments();
     var expression = generator.PrimaryKeyEqualityExpression();
@@ -28,8 +27,8 @@
     var pkValuesForModify = generator.PrimaryKeyPropertyValuesForModify();
 
     var apiGroup = generator.ApiGroup();
-    var apiRoute = "Endpoints." + generator.ApiCollection();
-    var entity = generator.EntityVariable();
+    var apiRoute = "Endpoints." + generator.CollectionSlug();
+    var variable = generator.EntityVariable();
 
 #>
 using Microsoft.AspNetCore.Authorization;
@@ -41,7 +40,7 @@ using <#= platform #>.Contract;
 <#= generator.UsingStatements("Contract") #>
 <#= generator.UsingStatements("Service") #>
 
-<# if (DomainEntity == "Module") { #>
+<# if (EntityName == "Module") { #>
 using ModuleHandle = Shift.Contract.Curriculums.ModuleHandle;
 
 <# } #>
@@ -50,21 +49,21 @@ namespace <#= generator.Namespace() #>;
 [ApiController]
 [ApiExplorerSettings(GroupName = "<#= apiGroup #>")]
 [Authorize]
-public class <#= DomainEntity #>Controller : ControllerBase
+public class <#= EntityName #>Controller : ControllerBase
 {
-    private readonly I<#= DomainEntity #>Service _<#= entity #>Service;
+    private readonly I<#= EntityName #>Service _<#= variable #>Service;
 
-    public <#= DomainEntity #>Controller(I<#= DomainEntity #>Service <#= entity #>Service)
+    public <#= EntityName #>Controller(I<#= EntityName #>Service <#= variable #>Service)
     {
-        _<#= entity #>Service = <#= entity #>Service;
+        _<#= variable #>Service = <#= variable #>Service;
     }
 
     [Authorize(<#= apiRoute #>.Get)]
     [HttpGet(<#= apiRoute #>.Get)]
-    [ProducesResponseType(typeof(<#= DomainEntity #>Model), StatusCodes.Status200OK)]
-    public async Task<ActionResult<<#= DomainEntity #>Model>> Get(<#= parameters #>, CancellationToken token)
+    [ProducesResponseType(typeof(<#= EntityName #>Model), StatusCodes.Status200OK)]
+    public async Task<ActionResult<<#= EntityName #>Model>> Get(<#= parameters #>, CancellationToken token)
     {
-        var model = await _<#= entity #>Service.GetAsync(<#= arguments #>, token);
+        var model = await _<#= variable #>Service.GetAsync(<#= arguments #>, token);
 
         if (model == null)
             return NotFound();
@@ -74,12 +73,12 @@ public class <#= DomainEntity #>Controller : ControllerBase
 
     [Authorize(<#= apiRoute #>.List)]
     [HttpGet(<#= apiRoute #>.List)]
-    [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>Model>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>Model>>> List([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
+    [ProducesResponseType(typeof(IEnumerable<<#= EntityName #>Model>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<<#= EntityName #>Model>>> List([FromQuery] <#= EntityName #>Criteria criteria, CancellationToken token)
     {
-        var models = await _<#= entity #>Service.ListAsync(criteria, token);
+        var models = await _<#= variable #>Service.ListAsync(criteria, token);
 
-        var count = await _<#= entity #>Service.CountAsync(criteria, token);
+        var count = await _<#= variable #>Service.CountAsync(criteria, token);
 
         Response.AddPagination(criteria.Page, criteria.Take, models.Count(), count);
 
@@ -89,9 +88,9 @@ public class <#= DomainEntity #>Controller : ControllerBase
     [Authorize(<#= apiRoute #>.Count)]
     [HttpGet(<#= apiRoute #>.Count)]
     [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
-    public async Task<ActionResult<int>> Count([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
+    public async Task<ActionResult<int>> Count([FromQuery] <#= EntityName #>Criteria criteria, CancellationToken token)
     {
-        var count = await _<#= entity #>Service.CountAsync(criteria, token);
+        var count = await _<#= variable #>Service.CountAsync(criteria, token);
 
         return Ok(count);
     }
@@ -101,19 +100,19 @@ public class <#= DomainEntity #>Controller : ControllerBase
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     public async Task<ActionResult<bool>> Exists(<#= parameters #>, CancellationToken token)
     {
-        var exists = await _<#= entity #>Service.ExistsAsync(<#= arguments #>, token);
+        var exists = await _<#= variable #>Service.ExistsAsync(<#= arguments #>, token);
 
         return Ok(exists);
     }
 
     [Authorize(<#= apiRoute #>.Search)]
     [HttpGet(<#= apiRoute #>.Search)]
-    [ProducesResponseType(typeof(IEnumerable<<#= DomainEntity #>Handle>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<<#= DomainEntity #>Handle>>> Search([FromQuery] <#= DomainEntity #>Criteria criteria, CancellationToken token)
+    [ProducesResponseType(typeof(IEnumerable<<#= EntityName #>Handle>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<<#= EntityName #>Handle>>> Search([FromQuery] <#= EntityName #>Criteria criteria, CancellationToken token)
     {
-        var handles = await _<#= entity #>Service.SearchAsync(criteria, token);
+        var handles = await _<#= variable #>Service.SearchAsync(criteria, token);
 
-        var count = await _<#= entity #>Service.CountAsync(criteria, token);
+        var count = await _<#= variable #>Service.CountAsync(criteria, token);
 
         Response.AddPagination(criteria.Page, criteria.Take, handles.Count(), count);
 

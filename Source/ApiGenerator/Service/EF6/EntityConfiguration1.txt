@@ -1,0 +1,45 @@
+﻿internal class BInventorySnapshotConfiguration : EntityTypeConfiguration<BInventorySnapshot>
+{
+    public BInventorySnapshotConfiguration()
+    {
+        ToTable("BInventorySnapshot", "dbo");
+        HasKey(x => new { x.MovementType,x.ShipmentNumber,x.SnapshotDate });
+            
+        Property(x => x.CategoryID);
+        Property(x => x.ConditionIdentifier);
+        Property(x => x.LocationID).IsRequired();
+        Property(x => x.LocationParentID);
+        Property(x => x.OrderID);
+        Property(x => x.ProductID).IsRequired();
+        Property(x => x.ShipmentIdentifier).IsRequired();
+        Property(x => x.CategoryText).IsRequired().IsUnicode(false).HasMaxLength(128);
+        Property(x => x.LegalSubdivision).IsUnicode(false).HasMaxLength(64);
+        Property(x => x.LocationName).IsRequired().IsUnicode(false).HasMaxLength(128);
+        Property(x => x.LocationParentName).IsRequired().IsUnicode(false).HasMaxLength(128);
+        Property(x => x.LocationSubType).IsRequired().IsUnicode(false).HasMaxLength(32);
+        Property(x => x.MovementType).IsRequired().IsUnicode(false).HasMaxLength(20);
+        Property(x => x.ProductCategory).IsUnicode(false).HasMaxLength(128);
+        Property(x => x.ProductCondition).IsUnicode(false).HasMaxLength(40);
+        Property(x => x.ProductName).IsUnicode(false).HasMaxLength(128);
+        Property(x => x.PurposeAlias).IsUnicode(false).HasMaxLength(15);
+        Property(x => x.ShipmentSubType).IsUnicode(false).HasMaxLength(32);
+        Property(x => x.UnitName).IsRequired().IsUnicode(false).HasMaxLength(128);
+        Property(x => x.IsPriceChange).IsRequired();
+        Property(x => x.ProductIsSerialized).IsRequired();
+        Property(x => x.Quantity);
+        Property(x => x.QuantityAdjusted).IsRequired();
+        Property(x => x.QuantityDestroyed).IsRequired();
+        Property(x => x.QuantityOpened).IsRequired();
+        Property(x => x.QuantityProduced).IsRequired();
+        Property(x => x.QuantityRacked).IsRequired();
+        Property(x => x.QuantityRented).IsRequired();
+        Property(x => x.QuantityReturned).IsRequired();
+        Property(x => x.QuantitySold).IsRequired();
+        Property(x => x.QuantityTransferred).IsRequired();
+        Property(x => x.ShipmentNumber).IsRequired();
+        Property(x => x.ProductLength).HasPrecision(5, 2);
+        Property(x => x.UnitPrice).IsRequired().HasPrecision(19, 4);
+        Property(x => x.DateShipped).IsRequired();
+        Property(x => x.SnapshotDate).IsRequired();
+    }
+}

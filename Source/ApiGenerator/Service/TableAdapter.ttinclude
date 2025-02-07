@@ -6,31 +6,30 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="DomainToolkit" #>
-<#@ parameter type="System.String" name="DomainFeature" #>
-<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ parameter type="System.String" name="ComponentName" #>
+<#@ parameter type="System.String" name="ComponentFeature" #>
+<#@ parameter type="System.String" name="EntityName" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
     
     var platform = Settings.PlatformName;
     var database = new Database();
-    var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainFeature, DomainEntity);
+    var entity = database.GetEntities().GetEntity(ComponentName, ComponentFeature, EntityName);
 
-    var generator = new Generator(endpoint, "Service");
+    var generator = new Generator(entity, "Service");
     var declarations = generator.PropertyDeclarations(PropertyType.All, false, true, 1);
-    var primaryKey = generator.PrimaryKey();
+    var primaryKey = generator.StorageKey();
 
-    var columns = database.GetTable(endpoint.DatabaseSchema, endpoint.DatabaseObject).Columns;
+    var columns = database.GetTable(entity.StorageSchema, entity.StorageTable).Columns;
 
 #>
 <#= generator.UsingStatements("Contract") #>
 
 namespace <#= generator.Namespace() #>;
 
-public class <#= DomainEntity #>Adapter
+public class <#= EntityName #>Adapter
 {
-    public void Copy(Modify<#= DomainEntity #> modify, <#= DomainEntity #>Entity entity)
+    public void Copy(Modify<#= EntityName #> modify, <#= EntityName #>Entity entity)
     {
 <#
 for (int i = 0; i < columns.Count; i++) 
@@ -43,9 +42,9 @@ for (int i = 0; i < columns.Count; i++)
 }
 #>    }
 
-    public <#= DomainEntity #>Entity ToEntity(Create<#= DomainEntity #> create)
+    public <#= EntityName #>Entity ToEntity(Create<#= EntityName #> create)
     {
-        var entity = new <#= DomainEntity #>Entity
+        var entity = new <#= EntityName #>Entity
         {
 <#
 for (int i = 0; i < columns.Count; i++) 
@@ -61,14 +60,14 @@ for (int i = 0; i < columns.Count; i++)
         return entity;
     }
 
-    public IEnumerable<<#= DomainEntity #>Model> ToModel(IEnumerable<<#= DomainEntity #>Entity> entities)
+    public IEnumerable<<#= EntityName #>Model> ToModel(IEnumerable<<#= EntityName #>Entity> entities)
     {
         return entities.Select(ToModel);
     }
 
-    public <#= DomainEntity #>Model ToModel(<#= DomainEntity #>Entity entity)
+    public <#= EntityName #>Model ToModel(<#= EntityName #>Entity entity)
     {
-        var model = new <#= DomainEntity #>Model
+        var model = new <#= EntityName #>Model
         {
 <#
 for (int i = 0; i < columns.Count; i++) 
@@ -84,14 +83,14 @@ for (int i = 0; i < columns.Count; i++)
         return model;
     }
 
-    public IEnumerable<<#= DomainEntity #>Handle> ToHandle(IEnumerable<<#= DomainEntity #>Entity> entities)
+    public IEnumerable<<#= EntityName #>Handle> ToHandle(IEnumerable<<#= EntityName #>Entity> entities)
     {
         return entities.Select(ToHandle);
     }
 
-    public <#= DomainEntity #>Handle ToHandle(<#= DomainEntity #>Entity entity)
+    public <#= EntityName #>Handle ToHandle(<#= EntityName #>Entity entity)
     {
-        var handle = new <#= DomainEntity #>Handle
+        var handle = new <#= EntityName #>Handle
         {
 <#
 for (int i = 0; i < primaryKey.Length; i++) 

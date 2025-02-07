@@ -12,25 +12,33 @@
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
     
-    var platform = Settings.PlatformName;
     var database = new Database();
     var entities = database.GetEntities();
     var entity = entities.GetEntity(ComponentName, ComponentFeature, EntityName);
 
-    var generator = new Generator(entity, "Service");
-    var declarations = generator.PropertyDeclarations(PropertyType.All, false, true, 1);
-
+    var generator = new Generator(entity, "Contract");
+    var criteriaDeclarations = generator.PropertyDeclarations(PropertyType.OnlyPrimaryKey, true);
+    var matchDeclarations = generator.PropertyDeclarations(PropertyType.OnlyPrimaryKey);
+    var modelDeclarations = generator.PropertyDeclarations(PropertyType.All);
 #>
-using FluentValidation;
+using System;
 
-namespace <#= generator.Namespace() #>;
+using Common;
 
-public class <#= EntityName #>EntityValidator : AbstractValidator<<#= EntityName #>Entity>
+namespace <#= generator.Namespace() #>
 {
-    private readonly <#= EntityName #>Search _search;
-
-    public <#= EntityName #>EntityValidator(<#= EntityName #>Search search)
+    public partial class <#= EntityName #>Criteria : Criteria
     {
-        _search = search;
+<#= criteriaDeclarations #>
+    }
+
+    public partial class <#= EntityName #>Match
+    {
+<#= matchDeclarations #>
+    }
+
+    public partial class <#= EntityName #>Model
+    {
+<#= modelDeclarations #>
     }
 }

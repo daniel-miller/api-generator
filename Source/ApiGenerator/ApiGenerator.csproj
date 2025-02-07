@@ -54,15 +54,14 @@
     <None Include="Contract\Clients\ProjectionClient.ttinclude" />
     <None Include="Contract\Clients\TableClient.ttinclude" />
     <None Include="Contract\Clients\ViewClient.ttinclude" />
-    <None Include="Contract\CreateRequest.ttinclude" />
-    <None Include="Contract\Criteria.ttinclude" />
+    <None Include="Contract\Queries.ttinclude" />
+    <None Include="Contract\Commands.ttinclude" />
+    <None Include="Contract\Packets.ttinclude" />
     <None Include="Contract\Endpoints\ProjectionEndpoints.ttinclude" />
     <None Include="Contract\Endpoints\TableEndpoints.ttinclude" />
     <None Include="Contract\Endpoints\ViewEndpoints.ttinclude" />
-    <None Include="Contract\Handle.ttinclude" />
-    <None Include="Contract\Model.ttinclude" />
-    <None Include="Contract\ModifyRequest.ttinclude" />
     <None Include="Service\CriteriaValidator.ttinclude" />
+    <None Include="Service\Index.ttinclude" />
     <None Include="Service\ViewAdapter.ttinclude" />
     <None Include="Service\ProjectionService.ttinclude" />
     <None Include="Service\ProjectionAdapter.ttinclude" />
@@ -81,29 +80,55 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Example1.txt</LastGenOutput>
     </Content>
+    <Content Include="Example1.txt">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Example1.tt</DependentUpon>
+    </Content>
     <Content Include="Generate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Generate1.txt</LastGenOutput>
     </Content>
-    <Content Include="Service\DbContexts\ProjectionDbContext.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ProjectionDbContext.txt</LastGenOutput>
+    <Content Include="Generate1.txt">
+      <DependentUpon>Generate.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
     </Content>
     <Content Include="Service\DbContexts\TableDbContext.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>TableDbContext1.txt</LastGenOutput>
     </Content>
+    <Content Include="Service\DbContexts\TableDbContext1.txt">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TableDbContext.tt</DependentUpon>
+    </Content>
     <Content Include="Service\DbContexts\ViewDbContext.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ViewDbContext1.txt</LastGenOutput>
+    </Content>
+    <Content Include="Service\DbContexts\ViewDbContext1.txt">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ViewDbContext.tt</DependentUpon>
     </Content>
     <Content Include="Service\EF6\Entity.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Entity1.txt</LastGenOutput>
     </Content>
+    <Content Include="Service\EF6\Entity1.txt">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Entity.tt</DependentUpon>
+    </Content>
     <Content Include="Service\EF6\EntityConfiguration.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>EntityConfiguration1.txt</LastGenOutput>
+    </Content>
+    <Content Include="Service\EF6\EntityConfiguration1.txt">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityConfiguration.tt</DependentUpon>
     </Content>
   </ItemGroup>
   <ItemGroup>

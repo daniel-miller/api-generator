@@ -41,8 +41,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Endpoint.cs" />
-    <Compile Include="EndpointList.cs" />
+    <Compile Include="Entity.cs" />
+    <Compile Include="EntityList.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="Generator.cs" />
     <Compile Include="Inflector.cs" />

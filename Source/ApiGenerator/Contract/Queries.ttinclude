@@ -1,0 +1,82 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".txt" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ import namespace="System.Data" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ parameter type="System.String" name="ComponentName" #>
+<#@ parameter type="System.String" name="ComponentFeature" #>
+<#@ parameter type="System.String" name="EntityName" #>
+<#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
+<#@ import namespace="ApiGenerator.Utility" #><#
+    
+    var EntityNamePlural = Inflector.PluralizeNoun(EntityName);
+
+    var platform = Settings.PlatformName;
+    var database = new Database();
+    var entities = database.GetEntities();
+    var entity = entities.GetEntity(ComponentName, ComponentFeature, EntityName);
+    var entityNameLower = EntityName.ToLower();
+
+    var generator = new Generator(entity, "Contract");
+    var multiple = "        public " + EntityName + "Criteria Criteria { get; set; } = new " + EntityName + "Criteria();";
+    var single = generator.PropertyDeclarations(PropertyType.OnlyPrimaryKey);
+
+#>
+using System;
+using System.Collections.Generic;
+
+using Common;
+
+namespace <#= generator.Namespace() #>
+{
+    /// <summary>
+    /// Check for the existence of an item
+    /// </summary>
+    public class Assert<#= EntityName #> : IQuery<bool>
+    {
+<#= single #>
+    }
+
+    /// <summary>
+    /// Retrieve a collection of items
+    /// </summary>
+    public class Collect<#= EntityNamePlural #> : IQuery<IEnumerable<<#= EntityName #>Model>>
+    {
+<#= multiple #>
+    }
+
+    /// <summary>
+    /// Count the items in a collection
+    /// </summary>
+    public class Count<#= EntityNamePlural #> : IQuery<int>
+    {
+<#= multiple #>
+    }
+
+    /// <summary>
+    /// Retrieve an item from a collection
+    /// </summary>
+    public class Fetch<#= EntityName #> : IQuery<<#= EntityName #>Model>
+    {
+<#= single #>
+    }
+
+    /// <summary>
+    /// Download a collection of items
+    /// </summary>
+    public class Export<#= EntityNamePlural #> : IQuery<IEnumerable<<#= EntityName #>Model>>
+    {
+<#= multiple #>
+    }
+
+    /// <summary>
+    /// Find matching items in a collection
+    /// </summary>
+    public class Search<#= EntityNamePlural #> : IQuery<IEnumerable<<#= EntityName #>Match>>
+    {
+<#= multiple #>
+    }
+}

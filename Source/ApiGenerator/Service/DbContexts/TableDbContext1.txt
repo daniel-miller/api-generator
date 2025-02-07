@@ -1,0 +1,77 @@
+﻿using Microsoft.EntityFrameworkCore;
+
+using Festival.Service.Achievement;
+using Festival.Service.Billing;
+using Festival.Service.Contact;
+using Festival.Service.Content;
+using Festival.Service.Learning;
+using Festival.Service.Platform;
+using Festival.Service.Schedule;
+
+namespace Shift.Service;
+
+public class TableDbContext : DbContext
+{
+    public TableDbContext(DbContextOptions options) : base(options) { }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        ApplyConfigurations(builder);
+        ApplyNavigations(builder);
+
+        var decimalProperties = builder.Model
+            .GetEntityTypes()
+            .SelectMany(t => t.GetProperties())
+            .Where(p => (Nullable.GetUnderlyingType(p.ClrType) ?? p.ClrType) == typeof(decimal));
+
+        foreach (var property in decimalProperties)
+        {
+            property.SetPrecision(18);
+            property.SetScale(2);
+        }
+    }
+
+    private void ApplyNavigations(ModelBuilder builder)
+    {
+        // builder.Entity<UserEntity>().HasMany(e => e.Persons).WithOne(e => e.User).HasForeignKey(e => e.UserIdentifier).HasPrincipalKey(e => e.UserIdentifier);
+    }
+
+    private void ApplyConfigurations(ModelBuilder builder)
+    {
+        builder.ApplyConfiguration(new AppointmentConfiguration());
+        builder.ApplyConfiguration(new AwardConfiguration());
+        builder.ApplyConfiguration(new CertificateConfiguration());
+        builder.ApplyConfiguration(new ClassConfiguration());
+        builder.ApplyConfiguration(new ContentConfiguration());
+        builder.ApplyConfiguration(new DisciplineConfiguration());
+        builder.ApplyConfiguration(new DonationConfiguration());
+        builder.ApplyConfiguration(new LevelConfiguration());
+        builder.ApplyConfiguration(new LookupConfiguration());
+        builder.ApplyConfiguration(new ParticipantConfiguration());
+        builder.ApplyConfiguration(new PerformanceConfiguration());
+        builder.ApplyConfiguration(new PersonConfiguration());
+        builder.ApplyConfiguration(new ProductConfiguration());
+        builder.ApplyConfiguration(new RegistrationConfiguration());
+        builder.ApplyConfiguration(new TimestampConfiguration());
+    }
+
+    #region Database Tables
+
+        internal DbSet<AppointmentEntity> Appointments { get; set; }
+        internal DbSet<AwardEntity> Awards { get; set; }
+        internal DbSet<CertificateEntity> Certificates { get; set; }
+        internal DbSet<ClassEntity> Classes { get; set; }
+        internal DbSet<ContentEntity> Contents { get; set; }
+        internal DbSet<DisciplineEntity> Disciplines { get; set; }
+        internal DbSet<DonationEntity> Donations { get; set; }
+        internal DbSet<LevelEntity> Levels { get; set; }
+        internal DbSet<LookupEntity> Lookups { get; set; }
+        internal DbSet<ParticipantEntity> Participants { get; set; }
+        internal DbSet<PerformanceEntity> Performances { get; set; }
+        internal DbSet<PersonEntity> Persons { get; set; }
+        internal DbSet<ProductEntity> Products { get; set; }
+        internal DbSet<RegistrationEntity> Registrations { get; set; }
+        internal DbSet<TimestampEntity> Timestamps { get; set; }
+
+    #endregion
+}

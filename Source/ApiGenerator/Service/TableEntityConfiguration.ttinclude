@@ -6,34 +6,36 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="DomainToolkit" #>
-<#@ parameter type="System.String" name="DomainFeature" #>
-<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ parameter type="System.String" name="ComponentName" #>
+<#@ parameter type="System.String" name="ComponentFeature" #>
+<#@ parameter type="System.String" name="EntityName" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
     
     var platform = Settings.PlatformName;
     var database = new Database();
-    var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainFeature, DomainEntity);
+    var entities = database.GetEntities();
+    var entity = entities.GetEntity(ComponentName, ComponentFeature, EntityName);
 
-    var generator = new Generator(endpoint, "Service");
+    var generator = new Generator(entity, "Service");
     var declarations = generator.PropertyDeclarations(PropertyType.All, false, true, 1);
 
-    var pkColumnNames = "x." + String.Join(", x.", endpoint.PrimaryKey.Split(new []{','}));
+    var className = entity.FutureStorageTable + "Entity";
 
-    var columns = database.GetTable(endpoint.DatabaseSchema, endpoint.DatabaseObject).Columns;
+    var pkColumnNames = "x." + String.Join(", x.", entity.StorageKey.Split(new []{','}));
+
+    var columns = database.GetTable(entity.StorageSchema, entity.StorageTable).Columns;
 #>
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace <#= generator.Namespace() #>;
 
-internal class <#= DomainEntity #>Configuration : IEntityTypeConfiguration<<#= DomainEntity #>Entity>
+internal class <#= className #>Configuration : IEntityTypeConfiguration<<#= className #>>
 {
-    public void Configure(EntityTypeBuilder<<#= DomainEntity #>Entity> builder) 
+    public void Configure(EntityTypeBuilder<<#= className #>> builder) 
     {
-        builder.ToTable("<#= endpoint.DatabaseObject #>", "<#= endpoint.DatabaseSchema #>");
+        builder.ToTable("<#= entity.StorageTable #>", "<#= entity.StorageSchema #>");
         builder.HasKey(x => new { <#= pkColumnNames #> });
             
 <# 
@@ -51,7 +53,7 @@ for (int i = 0; i < columns.Count; i++)
     
     if (column.DataType == typeof(string))
     {
-        if (database.GetNativeType(endpoint.DatabaseObject, column.ColumnName) == "nvarchar")
+        if (database.GetNativeType(entity.StorageTable, column.ColumnName) == "nvarchar")
         {
             Write(".IsUnicode(true)");
         }
@@ -60,15 +62,15 @@ for (int i = 0; i < columns.Count; i++)
             Write(".IsUnicode(false)");
         }
         
-        if (column.MaxLength > -1)
+        if (-1 < column.MaxLength && column.MaxLength < int.MaxValue)
         {
             Write(".HasMaxLength(" + column.MaxLength + ")");
         }
     }
     else if (column.DataType == typeof(decimal))
     {
-        var precision = database.GetColumnPrecision(endpoint.DatabaseObject, column.ColumnName);
-        var scale = database.GetColumnScale(endpoint.DatabaseObject, column.ColumnName);
+        var precision = database.GetColumnPrecision(entity.StorageTable, column.ColumnName);
+        var scale = database.GetColumnScale(entity.StorageTable, column.ColumnName);
         if (precision != null && scale != null)
         {
             Write($".HasPrecision({precision}, {scale})");

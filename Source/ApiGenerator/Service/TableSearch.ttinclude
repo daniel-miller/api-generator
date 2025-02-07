@@ -6,19 +6,18 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="DomainToolkit" #>
-<#@ parameter type="System.String" name="DomainFeature" #>
-<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ parameter type="System.String" name="ComponentName" #>
+<#@ parameter type="System.String" name="ComponentFeature" #>
+<#@ parameter type="System.String" name="EntityName" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
     
     var platform = Settings.PlatformName;
     var database = new Database();
-    var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainFeature, DomainEntity);
-    var entities = Inflector.PluralizeNoun(endpoint.DomainEntity);
+    var entity = database.GetEntities().GetEntity(ComponentName, ComponentFeature, EntityName);
+    var entities = Inflector.PluralizeNoun(entity.EntityName);
 
-    var generator = new Generator(endpoint, "Service");
+    var generator = new Generator(entity, "Service");
     var parameters = generator.PrimaryKeyMethodParameters();
     var expression = generator.PrimaryKeyEqualityExpression();
     var query = generator.BuildQuery();
@@ -30,16 +29,16 @@ using <#= generator.Namespace("Contract") #>;
 
 namespace <#= generator.Namespace() #>;
 
-public class <#= DomainEntity #>Search
+public class <#= EntityName #>Search
 {
-    private readonly <#= endpoint.Component #>DbContext _tables;
+    private readonly <#= entity.StorageStructure #>DbContext _tables;
 
-    public <#= DomainEntity #>Search(<#= endpoint.Component #>DbContext tables)
+    public <#= EntityName #>Search(<#= entity.StorageStructure #>DbContext tables)
     {
         _tables = tables;
     }
 
-    public async Task<int> CountAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
+    public async Task<int> CountAsync(<#= EntityName #>Criteria criteria, CancellationToken token)
     {
         return await BuildQuery(criteria)
             .CountAsync(token);
@@ -51,14 +50,14 @@ public class <#= DomainEntity #>Search
             .AnyAsync(x => <#= expression #>, token);
     }
 
-    public async Task<<#= DomainEntity #>Entity?> GetAsync(<#= parameters #>, CancellationToken token)
+    public async Task<<#= EntityName #>Entity?> GetAsync(<#= parameters #>, CancellationToken token)
     {
         return await _tables.<#= entities #>
             .AsNoTracking()
             .FirstOrDefaultAsync(x => <#= expression #>, token);
     }
 
-    public async Task<IEnumerable<<#= DomainEntity #>Entity>> ListAsync(<#= DomainEntity #>Criteria criteria, CancellationToken token)
+    public async Task<IEnumerable<<#= EntityName #>Entity>> ListAsync(<#= EntityName #>Criteria criteria, CancellationToken token)
     {
         return await BuildQuery(criteria)
             .Skip((criteria.Page - 1) * criteria.Take)
@@ -66,7 +65,7 @@ public class <#= DomainEntity #>Search
             .ToListAsync(token);
     }
 
-    private IQueryable<<#= DomainEntity #>Entity> BuildQuery(<#= DomainEntity #>Criteria criteria)
+    private IQueryable<<#= EntityName #>Entity> BuildQuery(<#= EntityName #>Criteria criteria)
     {
         var query = _tables.<#= entities #>.AsNoTracking().AsQueryable();
 <#= query #>

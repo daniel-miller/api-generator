@@ -6,15 +6,15 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="DomainToolkit" #>
-<#@ parameter type="System.String" name="DomainFeature" #>
-<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ parameter type="System.String" name="ComponentName" #>
+<#@ parameter type="System.String" name="ComponentFeature" #>
+<#@ parameter type="System.String" name="EntityName" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
     
     var database = new Database();
-    var endpoint = database.GetEndpoints().GetEndpoint(DomainToolkit, DomainFeature, DomainEntity);
-    var generator = new Generator(endpoint, "Service");
+    var entity = database.GetEntities().GetEntity(ComponentName, ComponentFeature, EntityName);
+    var generator = new Generator(entity, "Service");
     
 #>
 using FluentValidation;
@@ -23,9 +23,9 @@ using <#= generator.Namespace("Contract") #>;
 
 namespace <#= generator.Namespace() #>;
 
-public class <#= DomainEntity #>CriteriaValidator : AbstractValidator<<#= DomainEntity #>Criteria>
+public class <#= EntityName #>CriteriaValidator : AbstractValidator<<#= EntityName #>Criteria>
 {
-    public <#= DomainEntity #>CriteriaValidator()
+    public <#= EntityName #>CriteriaValidator()
     {
         
     }

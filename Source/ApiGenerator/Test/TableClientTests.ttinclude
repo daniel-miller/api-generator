@@ -6,19 +6,18 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="DomainToolkit" #>
-<#@ parameter type="System.String" name="DomainFeature" #>
-<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ parameter type="System.String" name="ComponentName" #>
+<#@ parameter type="System.String" name="ComponentFeature" #>
+<#@ parameter type="System.String" name="EntityName" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
     
     var platform = Settings.PlatformName;
     var database = new Database();
-    var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainFeature, DomainEntity);
-    var entities = Inflector.PluralizeNoun(DomainEntity);
+    var entity = database.GetEntities().GetEntity(ComponentName, ComponentFeature, EntityName);
+    var entities = Inflector.PluralizeNoun(EntityName);
 
-    var generator = new Generator(endpoint, "Test");
+    var generator = new Generator(entity, "Test");
     var parameters = generator.PrimaryKeyMethodParameters();
     var arguments = generator.PrimaryKeyMethodArguments();
     var expression = generator.PrimaryKeyEqualityExpression();
@@ -28,7 +27,7 @@
     var pkValuesForModify = generator.PrimaryKeyPropertyValuesForModify();
 
     var apiGroup = generator.ApiGroup();
-    var entity = generator.EntityVariable();
+    var variable = generator.EntityVariable();
 
 #>
 <#= generator.UsingStatements("Contract") #>
@@ -36,11 +35,11 @@
 namespace <#= generator.Namespace() #>
 {
     [Trait("Category", "SDK")]
-    public class <#= DomainEntity #>ClientTests : IClassFixture<ApiClientFixture>
+    public class <#= EntityName #>ClientTests : IClassFixture<ApiClientFixture>
     {
         ApiClientFixture _fixture;
 
-        public <#= DomainEntity #>ClientTests(ApiClientFixture fixture)
+        public <#= EntityName #>ClientTests(ApiClientFixture fixture)
         {
             _fixture = fixture;
         }
@@ -48,8 +47,8 @@ namespace <#= generator.Namespace() #>
         [Fact]
         public async Task Search()
         {
-            var client = new <#= DomainEntity #>Client(_fixture.ApiClientFactory);
-            var criteria = new <#= DomainEntity #>Criteria() { Take = 3 };
+            var client = new <#= EntityName #>Client(_fixture.ApiClientFactory);
+            var criteria = new <#= EntityName #>Criteria() { Take = 3 };
             var handles = await client.SearchAsync(criteria);
         }
     }

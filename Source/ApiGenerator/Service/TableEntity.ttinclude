@@ -6,24 +6,25 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="DomainToolkit" #>
-<#@ parameter type="System.String" name="DomainFeature" #>
-<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ parameter type="System.String" name="ComponentName" #>
+<#@ parameter type="System.String" name="ComponentFeature" #>
+<#@ parameter type="System.String" name="EntityName" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
     
     var platform = Settings.PlatformName;
     var database = new Database();
-    var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainFeature, DomainEntity);
+    var entities = database.GetEntities();
+    var entity = entities.GetEntity(ComponentName, ComponentFeature, EntityName);
 
-    var generator = new Generator(endpoint, "Service");
+    var generator = new Generator(entity, "Service");
     var declarations = generator.PropertyDeclarations(PropertyType.All, false, true, 1);
 
+    var className = entity.FutureStorageTable + "Entity";
 #>
 namespace <#= generator.Namespace() #>;
 
-public partial class <#= DomainEntity #>Entity
+public partial class <#= className #>
 {
 <#= declarations #>
 }

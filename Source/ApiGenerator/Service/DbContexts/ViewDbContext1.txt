@@ -1,0 +1,72 @@
+﻿using Microsoft.EntityFrameworkCore;
+
+using Festival.Service.Achievement;
+using Festival.Service.Billing;
+using Festival.Service.Contact;
+using Festival.Service.Learning;
+using Festival.Service.Report;
+using Festival.Service.Schedule;
+
+namespace Shift.Service;
+
+public class TableDbContext : DbContext
+{
+    public TableDbContext(DbContextOptions options) : base(options) { }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        ApplyConfigurations(builder);
+        ApplyNavigations(builder);
+
+        var decimalProperties = builder.Model
+            .GetEntityTypes()
+            .SelectMany(t => t.GetProperties())
+            .Where(p => (Nullable.GetUnderlyingType(p.ClrType) ?? p.ClrType) == typeof(decimal));
+
+        foreach (var property in decimalProperties)
+        {
+            property.SetPrecision(18);
+            property.SetScale(2);
+        }
+    }
+
+    private void ApplyNavigations(ModelBuilder builder)
+    {
+        // builder.Entity<UserEntity>().HasMany(e => e.Persons).WithOne(e => e.User).HasForeignKey(e => e.UserIdentifier).HasPrincipalKey(e => e.UserIdentifier);
+    }
+
+    private void ApplyConfigurations(ModelBuilder builder)
+    {
+        builder.ApplyConfiguration(new AppointmentDetailConfiguration());
+        builder.ApplyConfiguration(new AwardDetailConfiguration());
+        builder.ApplyConfiguration(new ClassDetailConfiguration());
+        builder.ApplyConfiguration(new DisciplineDetailConfiguration());
+        builder.ApplyConfiguration(new ParticipantDetailConfiguration());
+        builder.ApplyConfiguration(new PerformanceDetailConfiguration());
+        builder.ApplyConfiguration(new PerformanceParticipantDetailConfiguration());
+        builder.ApplyConfiguration(new PersonDetailConfiguration());
+        builder.ApplyConfiguration(new ProductDetailConfiguration());
+        builder.ApplyConfiguration(new RegistrationDetailConfiguration());
+        builder.ApplyConfiguration(new ScheduleItemConfiguration());
+        builder.ApplyConfiguration(new SchedulePreparationItemConfiguration());
+        builder.ApplyConfiguration(new StatisticConfiguration());
+    }
+
+    #region Database Views
+
+        internal DbSet<AppointmentDetailEntity> AppointmentDetails { get; set; }
+        internal DbSet<AwardDetailEntity> AwardDetails { get; set; }
+        internal DbSet<ClassDetailEntity> ClassDetails { get; set; }
+        internal DbSet<DisciplineDetailEntity> DisciplineDetails { get; set; }
+        internal DbSet<ParticipantDetailEntity> ParticipantDetails { get; set; }
+        internal DbSet<PerformanceDetailEntity> PerformanceDetails { get; set; }
+        internal DbSet<PerformanceParticipantDetailEntity> PerformanceParticipantDetails { get; set; }
+        internal DbSet<PersonDetailEntity> PersonDetails { get; set; }
+        internal DbSet<ProductDetailEntity> ProductDetails { get; set; }
+        internal DbSet<RegistrationDetailEntity> RegistrationDetails { get; set; }
+        internal DbSet<ScheduleItemEntity> ScheduleItems { get; set; }
+        internal DbSet<SchedulePreparationItemEntity> SchedulePreparationItems { get; set; }
+        internal DbSet<StatisticEntity> Statistics { get; set; }
+
+    #endregion
+}

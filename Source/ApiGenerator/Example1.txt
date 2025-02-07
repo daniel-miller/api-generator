@@ -1,0 +1,7 @@
+﻿animal.TBird: Animal/Birds/Bird
+animal.TBirdHabitat: Animal/Birds/BirdHabitat
+animal.THabitat: Animal/Habitats/Habitat
+animal.TReptile: Animal/Reptiles/Reptile
+animal.TReptileHabitat: Animal/Reptiles/ReptileHabitat
+animal.TStudy: Animal/Studies/Study
+contact.TPerson: Contact/Persons/Person

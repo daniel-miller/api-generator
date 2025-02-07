@@ -6,9 +6,9 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="DomainToolkit" #>
-<#@ parameter type="System.String" name="DomainFeature" #>
-<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ parameter type="System.String" name="ComponentName" #>
+<#@ parameter type="System.String" name="ComponentFeature" #>
+<#@ parameter type="System.String" name="EntityName" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #>
 using Microsoft.EntityFrameworkCore;
@@ -19,10 +19,10 @@ using Microsoft.EntityFrameworkCore;
     var database = new Database();
     
     var views = database.GetEndpoints()
-        .Where(x => x.Component == "View")
+        .Where(x => x.StorageStructure == "View")
         .ToList();
 
-    var toolkits = views.Select(x => x.DomainToolkit)
+    var toolkits = views.Select(x => x.ComponentName)
         .Distinct()
         .OrderBy(x => x);
 
@@ -30,8 +30,8 @@ using Microsoft.EntityFrameworkCore;
     {
         if (toolkit == "Integration" || toolkit == "Plugin")
         {    
-            var toolsets = views.Where(x => x.DomainToolkit == toolkit)
-                .Select(x => x.DomainFeature)
+            var toolsets = views.Where(x => x.ComponentName == toolkit)
+                .Select(x => x.ComponentFeature)
                 .Distinct()
                 .OrderBy(x => x);
 
@@ -81,9 +81,9 @@ public class TableDbContext : DbContext
     {
 <#
 var lines = new List<string>();
-foreach (var endpoint in views)
+foreach (var entity in views)
 {
-    lines.Add("        builder.ApplyConfiguration(new " + endpoint.DomainEntity + "Configuration());");
+    lines.Add("        builder.ApplyConfiguration(new " + entity.EntityName + "Configuration());");
 }
 lines.Sort();
 foreach (var line in lines)
@@ -95,9 +95,9 @@ foreach (var line in lines)
 
 <#
 lines = new List<string>();
-foreach (var endpoint in views)
+foreach (var entity in views)
 {
-    lines.Add("        internal DbSet<" + endpoint.DomainEntity + "Entity> " + endpoint.DomainEntities + " { get; set; }");
+    lines.Add("        internal DbSet<" + entity.EntityName + "Entity> " + entity.DomainEntities + " { get; set; }");
 }
 lines.Sort();
 foreach (var line in lines)

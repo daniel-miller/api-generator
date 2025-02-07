@@ -6,19 +6,18 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ parameter type="System.String" name="DomainToolkit" #>
-<#@ parameter type="System.String" name="DomainFeature" #>
-<#@ parameter type="System.String" name="DomainEntity" #>
+<#@ parameter type="System.String" name="ComponentName" #>
+<#@ parameter type="System.String" name="ComponentFeature" #>
+<#@ parameter type="System.String" name="EntityName" #>
 <#@ assembly name="$(SolutionDir)\..\Build\ApiGenerator.Utility.dll" #>
 <#@ import namespace="ApiGenerator.Utility" #><#
     
     var platform = Settings.PlatformName;
     var database = new Database();
-    var endpoints = database.GetEndpoints();
-    var endpoint = endpoints.GetEndpoint(DomainToolkit, DomainFeature, DomainEntity);
-    var entities = Inflector.PluralizeNoun(endpoint.DomainEntity);
+    var entity = database.GetEntities().GetEntity(ComponentName, ComponentFeature, EntityName);
+    var entities = Inflector.PluralizeNoun(entity.EntityName);
 
-    var generator = new Generator(endpoint, "Service");
+    var generator = new Generator(entity, "Service");
     var parameters = generator.PrimaryKeyMethodParameters();
     var expression = generator.PrimaryKeyEqualityExpression();
     var properties = generator.PrimaryKeyPropertyNames();
@@ -30,16 +29,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace <#= generator.Namespace() #>;
 
-public class <#= DomainEntity #>Store
+public class <#= EntityName #>Store
 {
-    private readonly <#= endpoint.Component #>DbContext _db;
+    private readonly <#= entity.StorageStructure #>DbContext _db;
         
-    public <#= DomainEntity #>Store(<#= endpoint.Component #>DbContext db)
+    public <#= EntityName #>Store(<#= entity.StorageStructure #>DbContext db)
     {
         _db = db;
     }
 
-    public async Task<bool> InsertAsync(<#= DomainEntity #>Entity entity, CancellationToken token)
+    public async Task<bool> InsertAsync(<#= EntityName #>Entity entity, CancellationToken token)
     {
         var exists = await ExistsAsync(<#= properties #>, token);
         if (exists)
@@ -49,7 +48,7 @@ public class <#= DomainEntity #>Store
         return await _db.SaveChangesAsync(token) > 0;
     }
         
-    public async Task<bool> UpdateAsync(<#= DomainEntity #>Entity entity, CancellationToken token)
+    public async Task<bool> UpdateAsync(<#= EntityName #>Entity entity, CancellationToken token)
     {
         var exists = await ExistsAsync(<#= properties #>, token);
         if (!exists)
